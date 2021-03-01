@@ -69,6 +69,8 @@ Some notes:
 
 2. Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
 
+You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progress) for a similar project with a different feature set.
+
 ## License
 
 The MIT License (MIT)
