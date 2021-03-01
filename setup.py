@@ -8,7 +8,7 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # read version string
-with open(path.join(here, 'ffmpeg_progress', '__init__.py')) as version_file:
+with open(path.join(here, 'ffmpeg_progress_yield', '__init__.py')) as version_file:
     version = eval(version_file.read().split("\n")[2].split("=")[1].strip())
 
 # Get the long description from the README file
@@ -20,15 +20,15 @@ with open(path.join(here, 'CHANGELOG.md'), encoding='utf-8') as f:
     history = f.read()
 
 setup(
-    name='ffmpeg-progress',
+    name='ffmpeg-progress-yield',
     version=version,
     description="Run an ffmpeg command with progress",
     long_description=long_description + '\n\n' + history,
     long_description_content_type='text/markdown',
     author="Werner Robitza",
     author_email='werner.robitza@gmail.com',
-    url='https://github.com/slhck/ffmpeg-progress',
-    packages=['ffmpeg_progress'],
+    url='https://github.com/slhck/ffmpeg-progress-yield',
+    packages=['ffmpeg_progress_yield'],
     include_package_data=True,
     install_requires=[],
     license="MIT",
@@ -49,7 +49,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ffmpeg-progress = ffmpeg_progress.__main__:main'
+            'ffmpeg-progress-yield = ffmpeg_progress_yield.__main__:main'
         ]
     },
 )

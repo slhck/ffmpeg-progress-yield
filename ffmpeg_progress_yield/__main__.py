@@ -1,6 +1,6 @@
 import sys
 
-from .ffmpeg_progress import FfmpegProgress
+from .ffmpeg_progress_yield import FfmpegProgress
 
 
 def main():

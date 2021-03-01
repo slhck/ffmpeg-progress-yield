@@ -1,6 +1,6 @@
-# ffmpeg-progress
+# ffmpeg-progress-yield
 
-[![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress.svg)](https://img.shields.io/pypi/v/ffmpeg-progress)
+[![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://img.shields.io/pypi/v/ffmpeg-progress-yield)
 
 Run an ffmpeg command with its progress yielded.
 
@@ -21,7 +21,7 @@ Contents:
 
 ## Installation
 
-    pip3 install ffmpeg-progress
+    pip3 install ffmpeg-progress-yield
 
 Or download this repository, then run `pip install .`.
 
@@ -30,7 +30,7 @@ Or download this repository, then run `pip install .`.
 In your Python project, import the helper class and run `run_command_with_progress`:
 
 ```python
-from ffmpeg_progress import FfmpegProgress
+from ffmpeg_progress_yield import FfmpegProgress
 
 cmd = [
     "ffmpeg", "-i", "test/test.mp4", "-c:v", "libx264", "-vf", "scale=1920x1080", "-preset", "fast", "-f", "null", "/dev/null",
@@ -47,7 +47,7 @@ If you have `tqdm` installed, you can create a fancy progress bar:
 
 ```python
 from tqdm import tqdm
-from ffmpeg_progress import FfmpegProgress
+from ffmpeg_progress_yield import FfmpegProgress
 
 cmd = [
     "ffmpeg", "-i", "test/test.mp4", "-c:v", "libx264", "-vf", "scale=1920x1080", "-preset", "fast", "-f", "null", "/dev/null",

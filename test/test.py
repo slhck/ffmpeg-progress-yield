@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from ffmpeg_progress import FfmpegProgress
+from ffmpeg_progress_yield import FfmpegProgress
 
 
 class TestLibrary:
@@ -34,7 +34,7 @@ class TestProgress:
         cmd = [
             "python3",
             "-m",
-            "ffmpeg_progress",
+            "ffmpeg_progress_yield",
             "ffmpeg",
             "-i",
             "test/test.mp4",
