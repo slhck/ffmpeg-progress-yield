@@ -7,7 +7,7 @@
 set -e
 
 # define the file containing the version here
-VERSION_FILE="ffmpeg_progress/__init__.py"
+VERSION_FILE="ffmpeg_progress_yield/__init__.py"
 
 # run checks
 for package in pypandoc twine wheel gitchangelog pystache; do
