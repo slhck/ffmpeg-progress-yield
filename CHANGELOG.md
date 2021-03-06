@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.0.3 (2021-03-06)
+
+* Remove release script.
+
+
 ## v0.0.2 (2021-03-06)
 
 * Fix release script.
