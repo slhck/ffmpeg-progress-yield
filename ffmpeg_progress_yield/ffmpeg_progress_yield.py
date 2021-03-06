@@ -43,9 +43,6 @@ class FfmpegProgress:
         the duration / progress.
         Yields the progress in percent.
         """
-        if self.cmd[0] != "ffmpeg":
-            raise RuntimeError("Command is not an ffmpeg command!")
-
         if self.dry_run:
             return
 
