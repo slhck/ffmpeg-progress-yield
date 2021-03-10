@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.0.4 (2021-03-10)
+
+* Add python_requires to setup.py.
+
+
 ## v0.0.3 (2021-03-06)
 
 * Remove release script.
