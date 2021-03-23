@@ -1,6 +1,6 @@
 # ffmpeg-progress-yield
 
-[![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://img.shields.io/pypi/v/ffmpeg-progress-yield)
+[![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://pypi.org/project/ffmpeg-progress-yield)
 
 Run an ffmpeg command with its progress yielded.
 
