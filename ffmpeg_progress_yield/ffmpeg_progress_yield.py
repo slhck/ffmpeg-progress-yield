@@ -1,6 +1,6 @@
 import subprocess
 import re
-
+from subprocess import CREATE_NO_WINDOW
 
 def to_ms(string=None, precision=None, **kwargs):
     """
@@ -60,6 +60,8 @@ class FfmpegProgress:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=False,
+            shell=False,
+            creationflags=CREATE_NO_WINDOW
         )
 
         while True:
