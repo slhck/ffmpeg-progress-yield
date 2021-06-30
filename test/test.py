@@ -49,4 +49,5 @@ class TestProgress:
             "/dev/null",
         ]
         ret = subprocess.run(cmd, capture_output=True, universal_newlines=True)
+        assert "0/100" in ret.stderr
         assert "100/100" in ret.stderr
