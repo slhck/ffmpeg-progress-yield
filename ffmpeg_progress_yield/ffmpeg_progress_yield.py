@@ -1,5 +1,6 @@
 import subprocess
 import re
+from typing import Generator, List
 
 
 def to_ms(string=None, precision=None, **kwargs):
@@ -32,16 +33,25 @@ class FfmpegProgress:
         r"out_time=(?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})\.(?P<ms>\d{2})"
     )
 
-    def __init__(self, cmd, dry_run=False) -> None:
+    def __init__(self, cmd: List[str], dry_run=False) -> None:
+        """Initialize the FfmpegProgress class.
+
+        Args:
+            cmd (List[str]): A list of command line elements, e.g. ["ffmpeg", "-i", ...]
+            dry_run (bool, optional): Only show what would be done. Defaults to False.
+        """
         self.cmd = cmd
         self.dry_run = dry_run
         self.stderr = None
 
-    def run_command_with_progress(self):
+    def run_command_with_progress(self, popen_kwargs={}) -> Generator[int, None, None]:
         """
         Run an ffmpeg command, trying to capture the process output and calculate
         the duration / progress.
         Yields the progress in percent.
+
+        Args:
+            popen_kwargs (dict): A dict to specify extra arguments to the popen call, e.g. { creationflags: CREATE_NO_WINDOW }
         """
         if self.dry_run:
             return
