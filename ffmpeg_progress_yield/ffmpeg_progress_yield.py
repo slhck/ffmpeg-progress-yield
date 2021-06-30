@@ -61,7 +61,7 @@ class FfmpegProgress:
         total_dur = None
 
         cmd_with_progress = (
-            [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
+            [self.cmd[0]] + ["-progress", "-", "-nostats", "-stats_period", "0.2"] + self.cmd[1:]
         )
 
         stderr = []
