@@ -1,6 +1,29 @@
 # Changelog
 
 
+## v0.1.0 (2021-06-30)
+
+* Format code with black.
+
+* Yield 0 in progress and improve logic.
+
+* Set universal_newlines to true and add kwargs support.
+
+* Increase stats period.
+
+* Document method.
+
+* Add typing.
+
+* Also check for 0 in output.
+
+* Update gitignore.
+
+* Drop python 3.5 support.
+
+* Update badge link.
+
+
 ## v0.0.4 (2021-03-10)
 
 * Add python_requires to setup.py.
