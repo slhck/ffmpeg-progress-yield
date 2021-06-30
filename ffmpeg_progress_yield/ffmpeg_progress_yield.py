@@ -3,9 +3,11 @@ import re
 from typing import Generator, List
 
 
-def to_ms(string=None, precision=None, **kwargs):
+def to_ms(string: str = None, precision: int = None, **kwargs) -> float:
     """
     Convert a string to milliseconds.
+    You can either pass a string, or a set of keyword args ("hour", "min", "sec", "ms") to convert.
+    If "precision" is set, the result is rounded to the number of decimals given.
     From: https://gist.github.com/Hellowlol/5f8545e999259b4371c91ac223409209
     """
     if string:
