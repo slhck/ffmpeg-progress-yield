@@ -75,6 +75,8 @@ class FfmpegProgress:
             **popen_kwargs
         )
 
+        yield 0
+
         while True:
             if p.stdout is None:
                 continue
@@ -91,8 +93,9 @@ class FfmpegProgress:
 
             self.stderr = "\n".join(stderr)
 
-            if not total_dur and FfmpegProgress.DUR_REGEX.search(stderr_line):
-                total_dur = FfmpegProgress.DUR_REGEX.search(stderr_line).groupdict()
+            total_dur_match = FfmpegProgress.DUR_REGEX.search(stderr_line)
+            if total_dur is None and total_dur_match:
+                total_dur = total_dur_match.groupdict()
                 total_dur = to_ms(**total_dur)
                 continue
             if total_dur:
