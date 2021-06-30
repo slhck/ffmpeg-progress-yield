@@ -61,7 +61,9 @@ class FfmpegProgress:
         total_dur = None
 
         cmd_with_progress = (
-            [self.cmd[0]] + ["-progress", "-", "-nostats", "-stats_period", "0.2"] + self.cmd[1:]
+            [self.cmd[0]]
+            + ["-progress", "-", "-nostats", "-stats_period", "0.2"]
+            + self.cmd[1:]
         )
 
         stderr = []
@@ -82,7 +84,9 @@ class FfmpegProgress:
                 continue
 
             if isinstance(p.stdout, bytes):
-                stderr_line = p.stdout.readline().decode("utf8", errors="replace").strip()
+                stderr_line = (
+                    p.stdout.readline().decode("utf8", errors="replace").strip()
+                )
             else:
                 stderr_line = p.stdout.readline().strip()
 
