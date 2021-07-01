@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.1.1 (2021-07-01)
+
+* Remove stats_period option for backwards compatibility, fixes #2.
+
+
 ## v0.1.0 (2021-06-30)
 
 * Format code with black.
