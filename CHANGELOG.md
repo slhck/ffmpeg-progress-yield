@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.1.2 (2021-08-14)
+
+* Remove universal_newlines for Windows compat.
+
+
 ## v0.1.1 (2021-07-01)
 
 * Remove stats_period option for backwards compatibility, fixes #2.
