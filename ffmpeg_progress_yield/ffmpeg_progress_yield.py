@@ -73,7 +73,7 @@ class FfmpegProgress:
             stdin=subprocess.PIPE,  # Apply stdin isolation by creating separate pipe.
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            universal_newlines=True,
+            universal_newlines=False,
             **popen_kwargs
         )
 
@@ -83,12 +83,7 @@ class FfmpegProgress:
             if p.stdout is None:
                 continue
 
-            if isinstance(p.stdout, bytes):
-                stderr_line = (
-                    p.stdout.readline().decode("utf8", errors="replace").strip()
-                )
-            else:
-                stderr_line = p.stdout.readline().strip()
+            stderr_line = p.stdout.readline().decode("utf-8", errors="replace").strip()
 
             if stderr_line == "" and p.poll() is not None:
                 break
