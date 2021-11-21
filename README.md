@@ -6,11 +6,14 @@ Run an ffmpeg command with its progress yielded.
 
 Contents:
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Caveats](#caveats)
-- [License](#license)
+- [ffmpeg-progress-yield](#ffmpeg-progress-yield)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [As a library](#as-a-library)
+    - [On the command line](#on-the-command-line)
+  - [Caveats](#caveats)
+  - [License](#license)
 
 -------------
 
@@ -26,6 +29,8 @@ Contents:
 Or download this repository, then run `pip install .`.
 
 ## Usage
+
+### As a library
 
 In your Python project, import the helper class and run `run_command_with_progress`:
 
@@ -60,6 +65,16 @@ with tqdm(total=100, position=1, desc="Test") as pbar:
 ```
 
 You can get the output of the command with the `.stderr` attribute of the `FfmpegProgress` class.
+
+### On the command line
+
+Simply prefix your ffmpeg command with `ffmpeg-progress-yield`:
+
+```bash
+ffmpeg-progress-yield ffmpeg -i input.mp4 output.mp4
+```
+
+It will show a progress bar, and once the command is done, show the ffmpeg stderr output.
 
 ## Caveats
 
