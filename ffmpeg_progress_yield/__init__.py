@@ -1,3 +1,3 @@
 from .ffmpeg_progress_yield import FfmpegProgress
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"

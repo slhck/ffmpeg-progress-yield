@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.2.0 (2021-11-21)
+
+* Add a usage option.
+
+
 ## v0.1.2 (2021-08-14)
 
 * Remove universal_newlines for Windows compat.
