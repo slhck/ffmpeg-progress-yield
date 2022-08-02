@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.3.0 (2022-08-02)
+
+* Update python requirements.
+
+
 ## v0.2.0 (2021-11-21)
 
 * Add a usage option.
