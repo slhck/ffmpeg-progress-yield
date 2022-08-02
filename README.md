@@ -6,20 +6,19 @@ Run an ffmpeg command with its progress yielded.
 
 Contents:
 
-- [ffmpeg-progress-yield](#ffmpeg-progress-yield)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Usage](#usage)
-    - [As a library](#as-a-library)
-    - [On the command line](#on-the-command-line)
-  - [Caveats](#caveats)
-  - [License](#license)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [As a library](#as-a-library)
+  - [On the command line](#on-the-command-line)
+- [Caveats](#caveats)
+- [License](#license)
 
 -------------
 
 ## Requirements
 
--   Python 3.6 or higher
+-   Python 3.7 or higher
 -   ffmpeg v3.1 or above from <http://ffmpeg.org/> installed in your \$PATH
 
 ## Installation
@@ -90,7 +89,7 @@ You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progr
 
 The MIT License (MIT)
 
-Copyright (c) 2021 Werner Robitza
+Copyright (c) 2021-2022 Werner Robitza
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
