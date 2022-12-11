@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.4.0 (2022-12-11)
+
+* Add a quit method, fixes #4.
+
+
 ## v0.3.0 (2022-08-02)
 
 * Update python requirements.
