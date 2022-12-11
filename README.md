@@ -4,6 +4,8 @@
 
 Run an ffmpeg command with its progress yielded.
 
+![](ffmpeg-progress-yield.gif)
+
 Contents:
 
 - [Requirements](#requirements)
