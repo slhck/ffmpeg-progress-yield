@@ -9,8 +9,7 @@ from ffmpeg_progress_yield import FfmpegProgress
 
 
 class TestLibrary:
-    def test_library(self):
-        cmd = [
+    cmd = [
             "ffmpeg",
             "-i",
             "test/test.mp4",
@@ -24,10 +23,26 @@ class TestLibrary:
             "null",
             "/dev/null",
         ]
-        ff = FfmpegProgress(cmd)
+
+    def test_library(self):    
+        ff = FfmpegProgress(TestLibrary.cmd)
+        elapsed = 0
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
+            assert progress >= elapsed
+            elapsed = progress
+        # assert that we get 100% progress
+        assert elapsed == 100
 
+    def test_quit(self):
+        ff = FfmpegProgress(TestLibrary.cmd)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 50:
+                ff.quit()
+                break
+        # expect that no ffmpeg process is running after this test
+        assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
 
 class TestProgress:
     def test_progress(self):
@@ -40,8 +55,6 @@ class TestProgress:
             "test/test.mp4",
             "-c:v",
             "libx264",
-            "-vf",
-            "scale=1920x1080",
             "-preset",
             "fast",
             "-f",

@@ -45,6 +45,7 @@ class FfmpegProgress:
         self.cmd = cmd
         self.dry_run = dry_run
         self.stderr = None
+        self.process = None
 
     def run_command_with_progress(self, popen_kwargs={}) -> Generator[int, None, None]:
         """
@@ -68,7 +69,7 @@ class FfmpegProgress:
 
         stderr = []
 
-        p = subprocess.Popen(
+        self.process = subprocess.Popen(
             cmd_with_progress,
             stdin=subprocess.PIPE,  # Apply stdin isolation by creating separate pipe.
             stdout=subprocess.PIPE,
@@ -80,12 +81,12 @@ class FfmpegProgress:
         yield 0
 
         while True:
-            if p.stdout is None:
+            if self.process.stdout is None:
                 continue
 
-            stderr_line = p.stdout.readline().decode("utf-8", errors="replace").strip()
+            stderr_line = self.process.stdout.readline().decode("utf-8", errors="replace").strip()
 
-            if stderr_line == "" and p.poll() is not None:
+            if stderr_line == "" and self.process.poll() is not None:
                 break
 
             stderr.append(stderr_line.strip())
@@ -103,9 +104,20 @@ class FfmpegProgress:
                     elapsed_time = to_ms(**progress_time.groupdict())
                     yield int(elapsed_time / total_dur * 100)
 
-        if p.returncode != 0:
+        if self.process.returncode != 0:
             raise RuntimeError(
                 "Error running command {}: {}".format(self.cmd, str("\n".join(stderr)))
             )
 
         yield 100
+        self.process = None
+
+    def quit(self):
+        """
+        Quit the ffmpeg process by sending SIGKILL.
+        Raises an exception if no process is found.
+        """
+        if self.process is None:
+            raise RuntimeError("No process found. Did you run the command?")
+
+        self.process.kill()
