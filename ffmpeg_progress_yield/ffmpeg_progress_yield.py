@@ -62,9 +62,7 @@ class FfmpegProgress:
         total_dur = None
 
         cmd_with_progress = (
-            [self.cmd[0]]
-            + ["-progress", "-", "-nostats"]
-            + self.cmd[1:]
+            [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
         )
 
         stderr = []
@@ -84,7 +82,9 @@ class FfmpegProgress:
             if self.process.stdout is None:
                 continue
 
-            stderr_line = self.process.stdout.readline().decode("utf-8", errors="replace").strip()
+            stderr_line = (
+                self.process.stdout.readline().decode("utf-8", errors="replace").strip()
+            )
 
             if stderr_line == "" and self.process.poll() is not None:
                 break
@@ -111,6 +111,16 @@ class FfmpegProgress:
 
         yield 100
         self.process = None
+
+    def quit_gracefully(self):
+        """
+        Quit the ffmpeg process by sending 'q'
+        Raises an exception if no process is found.
+        """
+        if self.process is None:
+            raise RuntimeError("No process found. Did you run the command?")
+
+        self.process.communicate(input="q".encode())  # type: ignore
 
     def quit(self):
         """

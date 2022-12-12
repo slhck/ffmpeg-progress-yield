@@ -34,12 +34,30 @@ class TestLibrary:
         # assert that we get 100% progress
         assert elapsed == 100
 
+    def test_getting_stderr(self):
+        ff = FfmpegProgress(TestLibrary.cmd)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0 and ff.stderr is not None:
+                assert len(ff.stderr) > 0
+                break
+
     def test_quit(self):
         ff = FfmpegProgress(TestLibrary.cmd)
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
-            if progress > 50:
+            if progress > 0:
                 ff.quit()
+                break
+        # expect that no ffmpeg process is running after this test
+        assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+
+    def test_quit_gracefully(self):
+        ff = FfmpegProgress(TestLibrary.cmd)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0 and ff.process is not None:
+                ff.quit_gracefully()
                 break
         # expect that no ffmpeg process is running after this test
         assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
