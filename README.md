@@ -78,6 +78,8 @@ for progress in ff.run_command_with_progress():
         break
 ```
 
+This will send a hard quit to the ffmpeg process, and may not wait for it to finish. To quit gracefully, use `.quit_gracefully()` instead, which sends 'q' to the ffmpeg process, and waits for it to finish.
+
 This is probably most useful in asynchronous environments, where you can run the command in a separate thread, and quit it from the main thread (e.g. using a [Condition Variable](https://docs.python.org/3/library/threading.html#threading.Condition)).
 
 ### On the command line
