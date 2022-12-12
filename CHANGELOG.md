@@ -1,6 +1,17 @@
 # Changelog
 
 
+## v0.5.0 (2022-12-12)
+
+* Add stderr callback method.
+
+* Update README.
+
+* Add graceful quit method.
+
+* Add a GIF in the readme.
+
+
 ## v0.4.0 (2022-12-11)
 
 * Add a quit method, fixes #4.
