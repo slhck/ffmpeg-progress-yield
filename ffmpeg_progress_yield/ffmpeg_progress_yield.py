@@ -1,9 +1,8 @@
 import subprocess
 import re
-from typing import Generator, List
+from typing import Generator, List, Union
 
-
-def to_ms(string: str = None, precision: int = None, **kwargs) -> float:
+def to_ms(string: Union[None, str] = None, precision: Union[None, int] = None, **kwargs) -> float:
     """
     Convert a string to milliseconds.
     You can either pass a string, or a set of keyword args ("hour", "min", "sec", "ms") to convert.
@@ -56,7 +55,9 @@ class FfmpegProgress:
         Also note that stdout/stderr are joined into one stream, so you might get stdout output in the callback.
         """
         if not callable(callback) or len(callback.__code__.co_varnames) != 1:
-            raise ValueError("Callback must be a function that accepts only one argument")
+            raise ValueError(
+                "Callback must be a function that accepts only one argument"
+            )
 
         self.stderr_callback = callback
 
@@ -96,7 +97,7 @@ class FfmpegProgress:
                 continue
 
             stderr_line = (
-                self.process.stdout.readline().decode("utf-8", errors="replace").strip()
+                self.process.stdout.readline().decode("utf-8", errors="replace").strip()  # type: ignore
             )
 
             if self.stderr_callback:

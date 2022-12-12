@@ -5,26 +5,26 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from ffmpeg_progress_yield import FfmpegProgress
+from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
 
 
 class TestLibrary:
     cmd = [
-            "ffmpeg",
-            "-i",
-            "test/test.mp4",
-            "-c:v",
-            "libx264",
-            "-vf",
-            "scale=1920x1080",
-            "-preset",
-            "fast",
-            "-f",
-            "null",
-            "/dev/null",
-        ]
+        "ffmpeg",
+        "-i",
+        "test/test.mp4",
+        "-c:v",
+        "libx264",
+        "-vf",
+        "scale=1920x1080",
+        "-preset",
+        "fast",
+        "-f",
+        "null",
+        "/dev/null",
+    ]
 
-    def test_library(self):    
+    def test_library(self):
         ff = FfmpegProgress(TestLibrary.cmd)
         elapsed = 0
         for progress in ff.run_command_with_progress():
@@ -72,6 +72,7 @@ class TestLibrary:
             print(f"{progress}/100")
             if progress > 0:
                 break
+
 
 class TestProgress:
     def test_progress(self):
