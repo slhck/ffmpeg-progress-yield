@@ -2,7 +2,10 @@ import subprocess
 import re
 from typing import Generator, List, Union
 
-def to_ms(string: Union[None, str] = None, precision: Union[None, int] = None, **kwargs) -> float:
+
+def to_ms(
+    string: Union[None, str] = None, precision: Union[None, int] = None, **kwargs
+) -> float:
     """
     Convert a string to milliseconds.
     You can either pass a string, or a set of keyword args ("hour", "min", "sec", "ms") to convert.

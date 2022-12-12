@@ -1,7 +1,7 @@
 import sys
 
 from .ffmpeg_progress_yield import FfmpegProgress
-from .import __version__ as version
+from . import __version__ as version
 
 
 def print_usage():
@@ -14,6 +14,7 @@ def print_usage():
     print("")
     print("Options:")
     print(" -h/--help:          Show this help and exit.")
+
 
 def main():
     if len(sys.argv) <= 1:
