@@ -62,6 +62,17 @@ class TestLibrary:
         # expect that no ffmpeg process is running after this test
         assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
 
+    def test_stderr_callback(self):
+        def stderr_callback(line):
+            print(line)
+
+        ff = FfmpegProgress(TestLibrary.cmd)
+        ff.set_stderr_callback(stderr_callback)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0:
+                break
+
 class TestProgress:
     def test_progress(self):
         cmd = [

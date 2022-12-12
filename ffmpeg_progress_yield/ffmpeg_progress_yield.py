@@ -46,6 +46,19 @@ class FfmpegProgress:
         self.dry_run = dry_run
         self.stderr = None
         self.process = None
+        self.stderr_callback = None
+
+    def set_stderr_callback(self, callback):
+        """
+        Set a callback function to be called on stderr output.
+        The callback function must accept a single string argument.
+        Note that this is called on every line of stderr output, so it can be called a lot.
+        Also note that stdout/stderr are joined into one stream, so you might get stdout output in the callback.
+        """
+        if not callable(callback) or len(callback.__code__.co_varnames) != 1:
+            raise ValueError("Callback must be a function that accepts only one argument")
+
+        self.stderr_callback = callback
 
     def run_command_with_progress(self, popen_kwargs={}) -> Generator[int, None, None]:
         """
@@ -85,6 +98,9 @@ class FfmpegProgress:
             stderr_line = (
                 self.process.stdout.readline().decode("utf-8", errors="replace").strip()
             )
+
+            if self.stderr_callback:
+                self.stderr_callback(stderr_line)
 
             if stderr_line == "" and self.process.poll() is not None:
                 break
