@@ -1,6 +1,43 @@
 # Changelog
 
 
+## v0.6.0 (2022-12-17)
+
+* Link to API docs.
+
+* Add API docs.
+
+* Add export.
+
+* Bump requirements to python 3.8 or higher.
+
+* Document methods.
+
+* Remove unused import.
+
+* Docs: add @WyattBlue as a contributor.
+
+* Docs: add @slhck as a contributor.
+
+* Unhide to_ms.
+
+* Add type hints + simplify.
+
+* Add python CI badge.
+
+* Fix quit tests.
+
+* Add all-contributors.
+
+* Add pytest to dev requirements.
+
+* Add github workflows.
+
+* Formatting.
+
+* Fix a few type and formatting errors.
+
+
 ## v0.5.0 (2022-12-12)
 
 * Add stderr callback method.
