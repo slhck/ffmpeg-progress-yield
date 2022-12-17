@@ -1,4 +1,7 @@
 # ffmpeg-progress-yield
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://pypi.org/project/ffmpeg-progress-yield)
 
@@ -14,6 +17,7 @@ Contents:
   - [As a library](#as-a-library)
   - [On the command line](#on-the-command-line)
 - [Caveats](#caveats)
+- [Contributors](#contributors)
 - [License](#license)
 
 -------------
@@ -101,6 +105,15 @@ Some notes:
 2. Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
 
 You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progress) for a similar project with a different feature set.
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## License
 
