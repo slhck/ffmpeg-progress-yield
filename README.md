@@ -16,7 +16,6 @@ Contents:
 - [Usage](#usage)
   - [As a library](#as-a-library)
   - [On the command line](#on-the-command-line)
-- [API](#api)
 - [Caveats](#caveats)
 - [Contributors](#contributors)
 - [License](#license)
@@ -38,7 +37,11 @@ Or download this repository, then run `pip install .`.
 
 ### As a library
 
-In your Python project, import the helper class and run `run_command_with_progress`:
+In your Python project, import the helper class and run `run_command_with_progress`.
+
+For more information see the [API documentation](https://htmlpreview.github.io/?https://github.com/slhck/ffmpeg-progress-yield/blob/master/docs/ffmpeg_progress_yield.html).
+
+Example:
 
 ```python
 from ffmpeg_progress_yield import FfmpegProgress
@@ -96,13 +99,6 @@ ffmpeg-progress-yield ffmpeg -i input.mp4 output.mp4
 ```
 
 It will show a progress bar, and once the command is done, show the ffmpeg stderr output.
-
-
-## API
-
-This program has a simple API that can be used to integrate it into other Python programs.
-
-For more information see the [API documentation](https://htmlpreview.github.io/?https://github.com/slhck/ffmpeg-progress-yield/blob/master/docs/ffmpeg_progress_yield.html).
 
 ## Caveats
 
