@@ -2,6 +2,7 @@
 import os
 import subprocess
 import sys
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -49,7 +50,8 @@ class TestLibrary:
             if progress > 0:
                 ff.quit()
                 break
-        # expect that no ffmpeg process is running after this test
+        # expect that no ffmpeg process is running after this test after sleeping for 1 second
+        time.sleep(1)
         assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
 
     def test_quit_gracefully(self):
@@ -59,7 +61,8 @@ class TestLibrary:
             if progress > 0 and ff.process is not None:
                 ff.quit_gracefully()
                 break
-        # expect that no ffmpeg process is running after this test
+        # expect that no ffmpeg process is running after this test after sleeping for 1 second
+        time.sleep(1)
         assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
 
     def test_stderr_callback(self):
