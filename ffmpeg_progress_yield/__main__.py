@@ -1,29 +1,19 @@
 import sys
 
-from .ffmpeg_progress_yield import FfmpegProgress
 from . import __version__ as version
+from .ffmpeg_progress_yield import FfmpegProgress
 
 
-def print_usage():
-    print(f"ffmpeg-progress-yield v{version}")
-    print()
-    print("Usage: ffmpeg-progress-yield [-h] ffmpeg-command")
-    print("")
-    print("Arguments:")
-    print(" ffmpeg-command:     Any ffmpeg command. Do not quote this argument.")
-    print("")
-    print("Options:")
-    print(" -h/--help:          Show this help and exit.")
-
-
-def main():
-    if len(sys.argv) <= 1:
-        print_usage()
+def main() -> None:
+    if len(sys.argv) <= 1 or sys.argv[1] in ("-h", "-help"):
+        print(
+            f"ffmpeg-progress-yield v{version}\n\n"
+            "Usage: ffmpeg-progress-yield [-h] ffmpeg-command\n\n"
+            "Arguments:\n"
+            " ffmpeg-command:     Any ffmpeg command. Do not quote this argument.\n\n"
+            "Options:\n -h/--help:          Show this help and exit."
+        )
         sys.exit(1)
-
-    if sys.argv[1] in ["-h", "--help"]:
-        print_usage()
-        sys.exit(0)
 
     ff = FfmpegProgress(sys.argv[1:])
 
