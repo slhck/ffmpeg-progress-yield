@@ -39,6 +39,9 @@ class FfmpegProgress:
         The callback function must accept a single string argument.
         Note that this is called on every line of stderr output, so it can be called a lot.
         Also note that stdout/stderr are joined into one stream, so you might get stdout output in the callback.
+
+        Args:
+            callback (Callable[[str], None]): A callback function that accepts a single string argument.
         """
         if not callable(callback) or len(callback.__code__.co_varnames) != 1:
             raise ValueError(
@@ -55,6 +58,12 @@ class FfmpegProgress:
 
         Args:
             popen_kwargs (dict): A dict to specify extra arguments to the popen call, e.g. { creationflags: CREATE_NO_WINDOW }
+
+        Raises:
+            RuntimeError: If the command fails, an exception is raised.
+
+        Yields:
+            Iterator[int]: A generator that yields the progress in percent.
         """
         if self.dry_run:
             return
@@ -117,7 +126,9 @@ class FfmpegProgress:
     def quit_gracefully(self) -> None:
         """
         Quit the ffmpeg process by sending 'q'
-        Raises an exception if no process is found.
+
+        Raises:
+            RuntimeError: If no process is found.
         """
         if self.process is None:
             raise RuntimeError("No process found. Did you run the command?")
@@ -127,7 +138,9 @@ class FfmpegProgress:
     def quit(self) -> None:
         """
         Quit the ffmpeg process by sending SIGKILL.
-        Raises an exception if no process is found.
+
+        Raises:
+            RuntimeError: If no process is found.
         """
         if self.process is None:
             raise RuntimeError("No process found. Did you run the command?")
