@@ -3,7 +3,7 @@ import subprocess
 from typing import Any, Callable, Dict, Iterator, List, Union
 
 
-def __to_ms(**kwargs: Union[float, int, str]) -> int:
+def to_ms(**kwargs: Union[float, int, str]) -> int:
     hour = int(kwargs.get("hour", 0))
     minute = int(kwargs.get("min", 0))
     sec = int(kwargs.get("sec", 0))
@@ -98,13 +98,13 @@ class FfmpegProgress:
 
             total_dur_match = FfmpegProgress.DUR_REGEX.search(stderr_line)
             if total_dur is None and total_dur_match:
-                total_dur = __to_ms(**total_dur_match.groupdict())
+                total_dur = to_ms(**total_dur_match.groupdict())
                 continue
 
             if total_dur:
                 progress_time = FfmpegProgress.TIME_REGEX.search(stderr_line)
                 if progress_time:
-                    elapsed_time = __to_ms(**progress_time.groupdict())
+                    elapsed_time = to_ms(**progress_time.groupdict())
                     yield int(elapsed_time / total_dur * 100)
 
         if self.process is None or self.process.returncode != 0:
