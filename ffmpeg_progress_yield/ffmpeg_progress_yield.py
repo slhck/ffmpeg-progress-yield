@@ -1,32 +1,15 @@
-import subprocess
 import re
-from typing import Generator, List, Union
+import subprocess
+from typing import Any, Callable, Dict, Iterator, List, Union
 
 
-def to_ms(
-    string: Union[None, str] = None, precision: Union[None, int] = None, **kwargs
-) -> float:
-    """
-    Convert a string to milliseconds.
-    You can either pass a string, or a set of keyword args ("hour", "min", "sec", "ms") to convert.
-    If "precision" is set, the result is rounded to the number of decimals given.
-    From: https://gist.github.com/Hellowlol/5f8545e999259b4371c91ac223409209
-    """
-    if string:
-        hour = int(string[0:2])
-        minute = int(string[3:5])
-        sec = int(string[6:8])
-        ms = int(string[10:11])
-    else:
-        hour = int(kwargs.get("hour", 0))
-        minute = int(kwargs.get("min", 0))
-        sec = int(kwargs.get("sec", 0))
-        ms = int(kwargs.get("ms", 0))
+def __to_ms(**kwargs: Union[float, int, str]) -> int:
+    hour = int(kwargs.get("hour", 0))
+    minute = int(kwargs.get("min", 0))
+    sec = int(kwargs.get("sec", 0))
+    ms = int(kwargs.get("ms", 0))
 
-    result = (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
-    if precision and isinstance(precision, int):
-        return round(result, precision)
-    return result
+    return (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
 
 
 class FfmpegProgress:
@@ -37,7 +20,7 @@ class FfmpegProgress:
         r"out_time=(?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})\.(?P<ms>\d{2})"
     )
 
-    def __init__(self, cmd: List[str], dry_run=False) -> None:
+    def __init__(self, cmd: List[str], dry_run: bool = False) -> None:
         """Initialize the FfmpegProgress class.
 
         Args:
@@ -45,12 +28,12 @@ class FfmpegProgress:
             dry_run (bool, optional): Only show what would be done. Defaults to False.
         """
         self.cmd = cmd
+        self.stderr: Union[str, None] = None
         self.dry_run = dry_run
-        self.stderr = None
-        self.process = None
-        self.stderr_callback = None
+        self.process: Any = None
+        self.stderr_callback: Union[Callable[[str], None], None] = None
 
-    def set_stderr_callback(self, callback):
+    def set_stderr_callback(self, callback: Callable[[str], None]) -> None:
         """
         Set a callback function to be called on stderr output.
         The callback function must accept a single string argument.
@@ -64,7 +47,7 @@ class FfmpegProgress:
 
         self.stderr_callback = callback
 
-    def run_command_with_progress(self, popen_kwargs={}) -> Generator[int, None, None]:
+    def run_command_with_progress(self, popen_kwargs={}) -> Iterator[int]:
         """
         Run an ffmpeg command, trying to capture the process output and calculate
         the duration / progress.
@@ -90,7 +73,7 @@ class FfmpegProgress:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=False,
-            **popen_kwargs
+            **popen_kwargs,
         )
 
         yield 0
@@ -100,7 +83,7 @@ class FfmpegProgress:
                 continue
 
             stderr_line = (
-                self.process.stdout.readline().decode("utf-8", errors="replace").strip()  # type: ignore
+                self.process.stdout.readline().decode("utf-8", errors="replace").strip()
             )
 
             if self.stderr_callback:
@@ -115,24 +98,23 @@ class FfmpegProgress:
 
             total_dur_match = FfmpegProgress.DUR_REGEX.search(stderr_line)
             if total_dur is None and total_dur_match:
-                total_dur = total_dur_match.groupdict()
-                total_dur = to_ms(**total_dur)
+                total_dur = __to_ms(**total_dur_match.groupdict())
                 continue
+
             if total_dur:
                 progress_time = FfmpegProgress.TIME_REGEX.search(stderr_line)
                 if progress_time:
-                    elapsed_time = to_ms(**progress_time.groupdict())
+                    elapsed_time = __to_ms(**progress_time.groupdict())
                     yield int(elapsed_time / total_dur * 100)
 
-        if self.process.returncode != 0:
-            raise RuntimeError(
-                "Error running command {}: {}".format(self.cmd, str("\n".join(stderr)))
-            )
+        if self.process is None or self.process.returncode != 0:
+            _pretty_stderr = "\n".join(stderr)
+            raise RuntimeError(f"Error running command {self.cmd}: {_pretty_stderr}")
 
         yield 100
         self.process = None
 
-    def quit_gracefully(self):
+    def quit_gracefully(self) -> None:
         """
         Quit the ffmpeg process by sending 'q'
         Raises an exception if no process is found.
@@ -140,9 +122,9 @@ class FfmpegProgress:
         if self.process is None:
             raise RuntimeError("No process found. Did you run the command?")
 
-        self.process.communicate(input="q".encode())  # type: ignore
+        self.process.communicate(input=b"q")
 
-    def quit(self):
+    def quit(self) -> None:
         """
         Quit the ffmpeg process by sending SIGKILL.
         Raises an exception if no process is found.
