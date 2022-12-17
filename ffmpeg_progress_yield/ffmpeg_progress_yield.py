@@ -1,6 +1,6 @@
 import re
 import subprocess
-from typing import Any, Callable, Dict, Iterator, List, Union
+from typing import Any, Callable, Iterator, List, Union
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
