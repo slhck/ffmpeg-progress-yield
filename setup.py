@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from setuptools import setup
 
-# To use a consistent encoding
-from codecs import open
 from os import path
+
+from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
@@ -13,11 +11,11 @@ with open(path.join(here, "ffmpeg_progress_yield", "__init__.py")) as version_fi
     version = eval(version_file.read().split("\n")[2].split("=")[1].strip())
 
 # Get the long description from the README file
-with open(path.join(here, "README.md"), encoding="utf-8") as f:
+with open(path.join(here, "README.md")) as f:
     long_description = f.read()
 
 # Get the history from the CHANGELOG file
-with open(path.join(here, "CHANGELOG.md"), encoding="utf-8") as f:
+with open(path.join(here, "CHANGELOG.md")) as f:
     history = f.read()
 
 setup(
@@ -31,6 +29,9 @@ setup(
     url="https://github.com/slhck/ffmpeg-progress-yield",
     packages=["ffmpeg_progress_yield"],
     include_package_data=True,
+    package_data={
+        "ffmpeg_progress_yield": ["py.typed"],
+    },
     install_requires=[],
     license="MIT",
     zip_safe=False,
