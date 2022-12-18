@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v0.6.1 (2022-12-18)
+
+* Add py.typed.
+
+* Move API docs to existing section.
+
+
 ## v0.6.0 (2022-12-17)
 
 * Link to API docs.
