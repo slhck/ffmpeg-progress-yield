@@ -57,6 +57,8 @@ for progress in ff.run_command_with_progress():
 
 The command will yield the current progress in percent.
 
+`run_command_with_progress` takes a `duration_override` argument where you can manually override the duration of the command in seconds. This is useful if your input doesn't have an implicit duration (e.g. if you use `testsrc`).
+
 If you have `tqdm` installed, you can create a fancy progress bar:
 
 ```python
@@ -100,13 +102,15 @@ ffmpeg-progress-yield ffmpeg -i input.mp4 output.mp4
 
 It will show a progress bar, and once the command is done, show the ffmpeg stderr output.
 
+If you want to manually override the duration to, say, 12.5 seconds (e.g. because your input doesn't have an implicit one):
+
+```bash
+ffmpeg-progress-yield --duration 12.5 ffmpeg -f lavfi -i testsrc -t 12.5 output.mp4
+```
+
 ## Caveats
 
-Some notes:
-
-1. The progress cannot be extracted for sources that don't have a duration (e.g. live sources).
-
-2. Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
+urrently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
 
 You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progress) for a similar project with a different feature set.
 

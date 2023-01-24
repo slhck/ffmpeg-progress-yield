@@ -50,14 +50,17 @@ class FfmpegProgress:
 
         self.stderr_callback = callback
 
-    def run_command_with_progress(self, popen_kwargs={}) -> Iterator[int]:
+    def run_command_with_progress(
+        self, popen_kwargs={}, duration_override: Union[float, None] = None
+    ) -> Iterator[int]:
         """
         Run an ffmpeg command, trying to capture the process output and calculate
         the duration / progress.
         Yields the progress in percent.
 
         Args:
-            popen_kwargs (dict): A dict to specify extra arguments to the popen call, e.g. { creationflags: CREATE_NO_WINDOW }
+            popen_kwargs (dict, optional): A dict to specify extra arguments to the popen call, e.g. { creationflags: CREATE_NO_WINDOW }
+            duration_override (float, optional): The duration in seconds. If not specified, it will be calculated from the ffmpeg output.
 
         Raises:
             RuntimeError: If the command fails, an exception is raised.
@@ -68,7 +71,7 @@ class FfmpegProgress:
         if self.dry_run:
             return
 
-        total_dur = None
+        total_dur: Union[None, int] = None
 
         cmd_with_progress = (
             [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
@@ -106,9 +109,14 @@ class FfmpegProgress:
             self.stderr = "\n".join(stderr)
 
             total_dur_match = FfmpegProgress.DUR_REGEX.search(stderr_line)
-            if total_dur is None and total_dur_match:
-                total_dur = to_ms(**total_dur_match.groupdict())
-                continue
+            if total_dur is None:
+                if total_dur_match:
+                    total_dur = to_ms(**total_dur_match.groupdict())
+                    continue
+                elif duration_override is not None:
+                    # use the override (should apply in the first loop)
+                    total_dur = int(duration_override * 1000)
+                    continue
 
             if total_dur:
                 progress_time = FfmpegProgress.TIME_REGEX.search(stderr_line)

@@ -25,6 +25,20 @@ class TestLibrary:
         "/dev/null",
     ]
 
+    unknown_dur_cmd = [
+        "ffmpeg",
+        "-re",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=d=10",
+        "-t",
+        "5",
+        "-f",
+        "null",
+        "/dev/null",
+    ]
+
     def test_library(self):
         ff = FfmpegProgress(TestLibrary.cmd)
         elapsed = 0
@@ -34,6 +48,22 @@ class TestLibrary:
             elapsed = progress
         # assert that we get 100% progress
         assert elapsed == 100
+
+    def test_unknown_dur(self):
+        ff = FfmpegProgress(TestLibrary.unknown_dur_cmd)
+        progresses = set([0])
+        for progress in ff.run_command_with_progress():
+            progresses.add(progress)
+        # assert that we get only 0 and 100% progress since we have no implicit duration
+        assert list(progresses) == [0, 100]
+
+    def test_manual_dur(self):
+        ff = FfmpegProgress(TestLibrary.unknown_dur_cmd)
+        progresses = set([0])
+        for progress in ff.run_command_with_progress(duration_override=5):
+            progresses.add(progress)
+        # assert that we get more than just 0 and 100
+        assert len(progresses) > 2
 
     def test_getting_stderr(self):
         ff = FfmpegProgress(TestLibrary.cmd)
