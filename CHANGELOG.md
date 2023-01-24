@@ -1,6 +1,15 @@
 # Changelog
 
 
+## v0.7.0 (2023-01-24)
+
+* Add duration override to API.
+
+* Remove manifest.in.
+
+* Add mypy settings.
+
+
 ## v0.6.1 (2022-12-18)
 
 * Add py.typed.
