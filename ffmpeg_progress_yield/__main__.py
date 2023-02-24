@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 from . import __version__ as version
 from .ffmpeg_progress_yield import FfmpegProgress
