@@ -1,6 +1,25 @@
 # Changelog
 
 
+## v0.7.1 (2023-02-24)
+
+* Fix types in CI.
+
+* Remove unneeded import.
+
+* Typo.
+
+* Docs: add @kskadart as a contributor.
+
+* Fix formatting.
+
+* Fix types.
+
+* Feat(ffprobe): FEAT-0001 try to get duration by ffprobe in case if loglevel=error.
+
+* Fix CI file.
+
+
 ## v0.7.0 (2023-01-24)
 
 * Add duration override to API.
