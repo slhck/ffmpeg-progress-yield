@@ -2,15 +2,13 @@
 import os
 import subprocess
 import sys
-import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
-os.chdir('../')
 
 from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
 
 
-_TEST_ASSET = 'test/test.mp4'
+_TEST_ASSET = os.path.join(os.path.dirname(__file__), 'test.mp4')
 
 
 class TestLibrary:
@@ -87,8 +85,7 @@ class TestLibrary:
                 ff.quit()
                 break
         # expect that no ffmpeg process is running after this test after sleeping for 1 second
-        # time.sleep(1)
-        # assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+        assert proc is not None
         proc.wait()
         assert proc.returncode == -9
 
@@ -102,8 +99,7 @@ class TestLibrary:
                 ff.quit_gracefully()
                 break
         # expect that no ffmpeg process is running after this test after sleeping for 1 second
-        # time.sleep(1)
-        # assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+        assert proc is not None
         assert proc.returncode == 0
 
     def test_stderr_callback(self):

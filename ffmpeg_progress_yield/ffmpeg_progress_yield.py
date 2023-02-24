@@ -1,6 +1,6 @@
 import re
 import subprocess
-from typing import Any, Callable, Iterator, List, Union, Optional
+from typing import Any, Callable, Iterator, List, Optional, Union
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -12,13 +12,16 @@ def to_ms(**kwargs: Union[float, int, str]) -> int:
     return (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
 
 
-def _probe_duration(cmd: List[str]) -> Optional[float]:
+def _probe_duration(cmd: List[str]) -> Optional[int]:
     """
-    ffprobe tool tries to get the duration from input media file
-    in case the ffmpeg works with loglevel=error.
+    Get the duration via ffprobe from input media file
+    in case ffmpeg was run with loglevel=error.
 
-    :param cmd: type List[str]: ffmpeg command
-    :return: type float: input file duration in milliseconds or None
+    Args:
+        cmd (List[str]): A list of command line elements, e.g. ["ffmpeg", "-i", ...]
+
+    Returns:
+        Optional[int]: The duration in milliseconds.
     """
     def _get_file_name(cmd: List[str]) -> Optional[str]:
         try:
@@ -26,27 +29,31 @@ def _probe_duration(cmd: List[str]) -> Optional[float]:
             return cmd[idx + 1]
         except ValueError:
             return None
+
     file_name = _get_file_name(cmd)
+    if file_name is None:
+        return None
+
     try:
-        completed_proc = subprocess.run([
+        output = subprocess.check_output([
             'ffprobe', '-hide_banner',
             '-show_entries', 'format=duration',
             '-of', 'default=noprint_wrappers=1:nokey=1',
             file_name
-        ], capture_output=True)
-        if completed_proc.returncode == 0:
-            output = completed_proc.stdout.decode('utf-8')
-            return float(output) * 1000
+        ], universal_newlines=True)
+        return int(float(output.strip()) * 1000)
     except Exception:
+        # TODO: add logging
         return None
 
 
-def _is_error_loglevel(cmd: List[str]) -> bool:
-    target_loglevel = 'error'
+def _uses_error_loglevel(cmd: List[str]) -> bool:
     try:
         idx = cmd.index('-loglevel')
-        if cmd[idx + 1] == target_loglevel:
+        if cmd[idx + 1] == 'error':
             return True
+        else:
+            return False
     except ValueError:
         return False
 
@@ -117,7 +124,7 @@ class FfmpegProgress:
             return self.cmd
 
         total_dur: Union[None, int] = None
-        if _is_error_loglevel(self.cmd):
+        if _uses_error_loglevel(self.cmd):
             total_dur = _probe_duration(self.cmd)
 
         cmd_with_progress = (
@@ -132,7 +139,7 @@ class FfmpegProgress:
         self.process = subprocess.Popen(
             cmd_with_progress,
             **base_popen_kwargs,
-        )
+        )  # type: ignore
 
         yield 0
 
