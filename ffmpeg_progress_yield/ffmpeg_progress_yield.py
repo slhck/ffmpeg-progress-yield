@@ -23,9 +23,10 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
     Returns:
         Optional[int]: The duration in milliseconds.
     """
+
     def _get_file_name(cmd: List[str]) -> Optional[str]:
         try:
-            idx = cmd.index('-i')
+            idx = cmd.index("-i")
             return cmd[idx + 1]
         except ValueError:
             return None
@@ -35,12 +36,18 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
         return None
 
     try:
-        output = subprocess.check_output([
-            'ffprobe', '-hide_banner',
-            '-show_entries', 'format=duration',
-            '-of', 'default=noprint_wrappers=1:nokey=1',
-            file_name
-        ], universal_newlines=True)
+        output = subprocess.check_output(
+            [
+                "ffprobe",
+                "-hide_banner",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                file_name,
+            ],
+            universal_newlines=True,
+        )
         return int(float(output.strip()) * 1000)
     except Exception:
         # TODO: add logging
@@ -49,8 +56,8 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
 
 def _uses_error_loglevel(cmd: List[str]) -> bool:
     try:
-        idx = cmd.index('-loglevel')
-        if cmd[idx + 1] == 'error':
+        idx = cmd.index("-loglevel")
+        if cmd[idx + 1] == "error":
             return True
         else:
             return False
@@ -82,7 +89,7 @@ class FfmpegProgress:
             "stdin": subprocess.PIPE,  # Apply stdin isolation by creating separate pipe.
             "stdout": subprocess.PIPE,
             "stderr": subprocess.STDOUT,
-            'universal_newlines': False,
+            "universal_newlines": False,
         }
 
     def set_stderr_callback(self, callback: Callable[[str], None]) -> None:

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
 from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
 
 
-_TEST_ASSET = os.path.join(os.path.dirname(__file__), 'test.mp4')
+_TEST_ASSET = os.path.join(os.path.dirname(__file__), "test.mp4")
 
 
 class TestLibrary:
@@ -115,7 +115,7 @@ class TestLibrary:
 
     def test_progress_with_loglevel_error(self):
         cmd = TestLibrary.cmd
-        cmd.extend(['-loglevel', 'error'])
+        cmd.extend(["-loglevel", "error"])
         ff = FfmpegProgress(cmd)
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
