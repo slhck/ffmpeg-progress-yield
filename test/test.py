@@ -4,16 +4,20 @@ import subprocess
 import sys
 import time
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
+os.chdir('../')
 
 from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
+
+
+_TEST_ASSET = 'test/test.mp4'
 
 
 class TestLibrary:
     cmd = [
         "ffmpeg",
         "-i",
-        "test/test.mp4",
+        _TEST_ASSET,
         "-c:v",
         "libx264",
         "-vf",
@@ -75,25 +79,32 @@ class TestLibrary:
 
     def test_quit(self):
         ff = FfmpegProgress(TestLibrary.cmd)
+        proc = None
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
             if progress > 0:
+                proc = ff.process
                 ff.quit()
                 break
         # expect that no ffmpeg process is running after this test after sleeping for 1 second
-        time.sleep(1)
-        assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+        # time.sleep(1)
+        # assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+        proc.wait()
+        assert proc.returncode == -9
 
     def test_quit_gracefully(self):
         ff = FfmpegProgress(TestLibrary.cmd)
+        proc = None
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
             if progress > 0 and ff.process is not None:
+                proc = ff.process
                 ff.quit_gracefully()
                 break
         # expect that no ffmpeg process is running after this test after sleeping for 1 second
-        time.sleep(1)
-        assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+        # time.sleep(1)
+        # assert len(subprocess.run(["pgrep", "ffmpeg"], capture_output=True).stdout) == 0
+        assert proc.returncode == 0
 
     def test_stderr_callback(self):
         def stderr_callback(line):
@@ -106,6 +117,16 @@ class TestLibrary:
             if progress > 0:
                 break
 
+    def test_progress_with_loglevel_error(self):
+        cmd = TestLibrary.cmd
+        cmd.extend(['-loglevel', 'error'])
+        ff = FfmpegProgress(cmd)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0:
+                assert 0 < progress < 100
+                break
+
 
 class TestProgress:
     def test_progress(self):
@@ -115,7 +136,7 @@ class TestProgress:
             "ffmpeg_progress_yield",
             "ffmpeg",
             "-i",
-            "test/test.mp4",
+            _TEST_ASSET,
             "-c:v",
             "libx264",
             "-preset",

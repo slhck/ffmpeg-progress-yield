@@ -1,6 +1,6 @@
 import re
 import subprocess
-from typing import Any, Callable, Iterator, List, Union
+from typing import Any, Callable, Iterator, List, Union, Optional
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -10,6 +10,45 @@ def to_ms(**kwargs: Union[float, int, str]) -> int:
     ms = int(kwargs.get("ms", 0))
 
     return (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
+
+
+def _probe_duration(cmd: List[str]) -> Optional[float]:
+    """
+    ffprobe tool tries to get the duration from input media file
+    in case the ffmpeg works with loglevel=error.
+
+    :param cmd: type List[str]: ffmpeg command
+    :return: type float: input file duration in milliseconds or None
+    """
+    def _get_file_name(cmd: List[str]) -> Optional[str]:
+        try:
+            idx = cmd.index('-i')
+            return cmd[idx + 1]
+        except ValueError:
+            return None
+    file_name = _get_file_name(cmd)
+    try:
+        completed_proc = subprocess.run([
+            'ffprobe', '-hide_banner',
+            '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1',
+            file_name
+        ], capture_output=True)
+        if completed_proc.returncode == 0:
+            output = completed_proc.stdout.decode('utf-8')
+            return float(output) * 1000
+    except Exception:
+        return None
+
+
+def _is_error_loglevel(cmd: List[str]) -> bool:
+    target_loglevel = 'error'
+    try:
+        idx = cmd.index('-loglevel')
+        if cmd[idx + 1] == target_loglevel:
+            return True
+    except ValueError:
+        return False
 
 
 class FfmpegProgress:
@@ -32,6 +71,12 @@ class FfmpegProgress:
         self.dry_run = dry_run
         self.process: Any = None
         self.stderr_callback: Union[Callable[[str], None], None] = None
+        self.base_popen_kwargs = {
+            "stdin": subprocess.PIPE,  # Apply stdin isolation by creating separate pipe.
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.STDOUT,
+            'universal_newlines': False,
+        }
 
     def set_stderr_callback(self, callback: Callable[[str], None]) -> None:
         """
@@ -51,7 +96,7 @@ class FfmpegProgress:
         self.stderr_callback = callback
 
     def run_command_with_progress(
-        self, popen_kwargs={}, duration_override: Union[float, None] = None
+        self, popen_kwargs=None, duration_override: Union[float, None] = None
     ) -> Iterator[int]:
         """
         Run an ffmpeg command, trying to capture the process output and calculate
@@ -69,23 +114,24 @@ class FfmpegProgress:
             Iterator[int]: A generator that yields the progress in percent.
         """
         if self.dry_run:
-            return
+            return self.cmd
 
         total_dur: Union[None, int] = None
+        if _is_error_loglevel(self.cmd):
+            total_dur = _probe_duration(self.cmd)
 
         cmd_with_progress = (
             [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
         )
 
         stderr = []
+        base_popen_kwargs = self.base_popen_kwargs.copy()
+        if popen_kwargs is not None:
+            base_popen_kwargs.update(popen_kwargs)
 
         self.process = subprocess.Popen(
             cmd_with_progress,
-            stdin=subprocess.PIPE,  # Apply stdin isolation by creating separate pipe.
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=False,
-            **popen_kwargs,
+            **base_popen_kwargs,
         )
 
         yield 0
@@ -108,8 +154,8 @@ class FfmpegProgress:
 
             self.stderr = "\n".join(stderr)
 
-            total_dur_match = FfmpegProgress.DUR_REGEX.search(stderr_line)
             if total_dur is None:
+                total_dur_match = self.DUR_REGEX.search(stderr_line)
                 if total_dur_match:
                     total_dur = to_ms(**total_dur_match.groupdict())
                     continue
@@ -142,6 +188,8 @@ class FfmpegProgress:
             raise RuntimeError("No process found. Did you run the command?")
 
         self.process.communicate(input=b"q")
+        self.process.kill()
+        self.process = None
 
     def quit(self) -> None:
         """
@@ -154,3 +202,4 @@ class FfmpegProgress:
             raise RuntimeError("No process found. Did you run the command?")
 
         self.process.kill()
+        self.process = None
