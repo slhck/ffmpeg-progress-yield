@@ -110,7 +110,7 @@ ffmpeg-progress-yield --duration 12.5 ffmpeg -f lavfi -i testsrc -t 12.5 output.
 
 ## Caveats
 
-urrently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
+Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
 
 You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progress) for a similar project with a different feature set.
 
