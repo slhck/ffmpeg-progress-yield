@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.7.2 (2023-03-04)
+
+* Do not print input information when probing, addresses #10.
+
+
 ## v0.7.1 (2023-02-24)
 
 * Fix types in CI.
