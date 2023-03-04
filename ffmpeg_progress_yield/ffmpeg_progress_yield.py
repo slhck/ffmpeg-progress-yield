@@ -39,6 +39,8 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
         output = subprocess.check_output(
             [
                 "ffprobe",
+                "-loglevel",
+                "error",
                 "-hide_banner",
                 "-show_entries",
                 "format=duration",
