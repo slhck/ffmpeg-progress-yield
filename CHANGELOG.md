@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v0.7.3 (2023-05-05)
+
+* Update readme.
+
+* Add progress as percent, fixes #12.
+
+
 ## v0.7.2 (2023-03-04)
 
 * Do not print input information when probing, addresses #10.
