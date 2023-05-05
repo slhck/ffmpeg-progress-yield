@@ -7,7 +7,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
 
 from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
 
-
 _TEST_ASSET = os.path.join(os.path.dirname(__file__), "test.mp4")
 
 
@@ -53,7 +52,7 @@ class TestLibrary:
 
     def test_unknown_dur(self):
         ff = FfmpegProgress(TestLibrary.unknown_dur_cmd)
-        progresses = set([0])
+        progresses = set([0.0])
         for progress in ff.run_command_with_progress():
             progresses.add(progress)
         # assert that we get only 0 and 100% progress since we have no implicit duration
@@ -61,7 +60,7 @@ class TestLibrary:
 
     def test_manual_dur(self):
         ff = FfmpegProgress(TestLibrary.unknown_dur_cmd)
-        progresses = set([0])
+        progresses = set([0.0])
         for progress in ff.run_command_with_progress(duration_override=5):
             progresses.add(progress)
         # assert that we get more than just 0 and 100
@@ -143,4 +142,4 @@ class TestProgress:
         ]
         ret = subprocess.run(cmd, capture_output=True, universal_newlines=True)
         assert "0/100" in ret.stderr
-        assert "100/100" in ret.stderr
+        assert "100.0/100" in ret.stderr or "100/100" in ret.stderr

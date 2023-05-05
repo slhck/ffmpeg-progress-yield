@@ -113,7 +113,7 @@ class FfmpegProgress:
 
     def run_command_with_progress(
         self, popen_kwargs=None, duration_override: Union[float, None] = None
-    ) -> Iterator[int]:
+    ) -> Iterator[float]:
         """
         Run an ffmpeg command, trying to capture the process output and calculate
         the duration / progress.
@@ -127,7 +127,7 @@ class FfmpegProgress:
             RuntimeError: If the command fails, an exception is raised.
 
         Yields:
-            Iterator[int]: A generator that yields the progress in percent.
+            Iterator[float]: A generator that yields the progress in percent.
         """
         if self.dry_run:
             return self.cmd
@@ -184,7 +184,7 @@ class FfmpegProgress:
                 progress_time = FfmpegProgress.TIME_REGEX.search(stderr_line)
                 if progress_time:
                     elapsed_time = to_ms(**progress_time.groupdict())
-                    yield int(elapsed_time / total_dur * 100)
+                    yield elapsed_time / total_dur * 100
 
         if self.process is None or self.process.returncode != 0:
             _pretty_stderr = "\n".join(stderr)
