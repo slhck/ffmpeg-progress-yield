@@ -55,7 +55,7 @@ for progress in ff.run_command_with_progress():
     print(f"{progress}/100")
 ```
 
-The command will yield the current progress in percent.
+The command will yield the current progress in percent as a float number.
 
 `run_command_with_progress` takes a `duration_override` argument where you can manually override the duration of the command in seconds. This is useful if your input doesn't have an implicit duration (e.g. if you use `testsrc`).
 
@@ -147,7 +147,7 @@ You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progr
 
 The MIT License (MIT)
 
-Copyright (c) 2021-2022 Werner Robitza
+Copyright (c) 2021-2023 Werner Robitza
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
