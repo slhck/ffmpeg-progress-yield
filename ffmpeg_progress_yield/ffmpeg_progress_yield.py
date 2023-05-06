@@ -184,7 +184,7 @@ class FfmpegProgress:
                 progress_time = FfmpegProgress.TIME_REGEX.search(stderr_line)
                 if progress_time:
                     elapsed_time = to_ms(**progress_time.groupdict())
-                    yield elapsed_time / total_dur * 100
+                    yield round(elapsed_time / total_dur * 100, 2)
 
         if self.process is None or self.process.returncode != 0:
             _pretty_stderr = "\n".join(stderr)
