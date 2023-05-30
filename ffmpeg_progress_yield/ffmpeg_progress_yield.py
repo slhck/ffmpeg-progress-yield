@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 from typing import Any, Callable, Iterator, List, Optional, Union
+from PIL import Image
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -11,6 +12,14 @@ def to_ms(**kwargs: Union[float, int, str]) -> int:
     ms = int(kwargs.get("ms", 0))
 
     return (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
+
+
+def _check_if_image(file_name: str) -> bool:
+    try:
+        Image.open(file_name)
+    except IOError:
+        return False
+    return True
 
 
 def _probe_duration(cmd: List[str]) -> Optional[int]:
@@ -30,7 +39,7 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
             file_name = cmd[i + 1]
 
             # filter for filenames that we can probe, i.e. regular files
-            if os.path.isfile(file_name):
+            if os.path.isfile(file_name) and not _check_if_image(file_name):
                 file_names.append(file_name)
 
     if len(file_names) == 0:
@@ -118,7 +127,7 @@ class FfmpegProgress:
         self.stderr_callback = callback
 
     def run_command_with_progress(
-        self, popen_kwargs=None, duration_override: Union[float, None] = None
+            self, popen_kwargs=None, duration_override: Union[float, None] = None
     ) -> Iterator[float]:
         """
         Run an ffmpeg command, trying to capture the process output and calculate
@@ -146,7 +155,7 @@ class FfmpegProgress:
             total_dur = int(duration_override * 1000)
 
         cmd_with_progress = (
-            [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
+                [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
         )
 
         stderr = []
@@ -182,7 +191,7 @@ class FfmpegProgress:
             # assign the total duration if it was found. this can happen multiple times for multiple inputs,
             # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
             if (
-                total_dur_match := self.DUR_REGEX.search(stderr_line)
+                    total_dur_match := self.DUR_REGEX.search(stderr_line)
             ) and duration_override is None:
                 total_dur_ms = to_ms(**total_dur_match.groupdict())
                 if total_dur is not None:
@@ -195,7 +204,7 @@ class FfmpegProgress:
                     total_dur = total_dur_ms
 
             if (
-                progress_time := FfmpegProgress.TIME_REGEX.search(stderr_line)
+                    progress_time := FfmpegProgress.TIME_REGEX.search(stderr_line)
             ) and total_dur is not None:
                 elapsed_time = to_ms(**progress_time.groupdict())
                 yield min(max(round(elapsed_time / total_dur * 100, 2), 0), 100)
