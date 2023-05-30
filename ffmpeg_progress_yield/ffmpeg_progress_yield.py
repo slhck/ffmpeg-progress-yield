@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 from typing import Any, Callable, Iterator, List, Optional, Union
@@ -23,37 +24,42 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
     Returns:
         Optional[int]: The duration in milliseconds.
     """
+    file_names = []
+    for i, arg in enumerate(cmd):
+        if arg == "-i":
+            file_name = cmd[i + 1]
 
-    def _get_file_name(cmd: List[str]) -> Optional[str]:
+            # filter for filenames that we can probe, i.e. regular files
+            if os.path.isfile(file_name):
+                file_names.append(file_name)
+
+    if len(file_names) == 0:
+        return None
+
+    durations = []
+
+    for file_name in file_names:
         try:
-            idx = cmd.index("-i")
-            return cmd[idx + 1]
-        except ValueError:
+            output = subprocess.check_output(
+                [
+                    "ffprobe",
+                    "-loglevel",
+                    "error",
+                    "-hide_banner",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    file_name,
+                ],
+                universal_newlines=True,
+            )
+            durations.append(int(float(output.strip()) * 1000))
+        except Exception:
+            # TODO: add logging
             return None
 
-    file_name = _get_file_name(cmd)
-    if file_name is None:
-        return None
-
-    try:
-        output = subprocess.check_output(
-            [
-                "ffprobe",
-                "-loglevel",
-                "error",
-                "-hide_banner",
-                "-show_entries",
-                "format=duration",
-                "-of",
-                "default=noprint_wrappers=1:nokey=1",
-                file_name,
-            ],
-            universal_newlines=True,
-        )
-        return int(float(output.strip()) * 1000)
-    except Exception:
-        # TODO: add logging
-        return None
+    return max(durations) if "-shortest" not in cmd else min(durations)
 
 
 def _uses_error_loglevel(cmd: List[str]) -> bool:
@@ -136,6 +142,9 @@ class FfmpegProgress:
         if _uses_error_loglevel(self.cmd):
             total_dur = _probe_duration(self.cmd)
 
+        if duration_override is not None:
+            total_dur = int(duration_override * 1000)
+
         cmd_with_progress = (
             [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
         )
@@ -170,21 +179,24 @@ class FfmpegProgress:
 
             self.stderr = "\n".join(stderr)
 
-            if total_dur is None:
-                total_dur_match = self.DUR_REGEX.search(stderr_line)
-                if total_dur_match:
-                    total_dur = to_ms(**total_dur_match.groupdict())
-                    continue
-                elif duration_override is not None:
-                    # use the override (should apply in the first loop)
-                    total_dur = int(duration_override * 1000)
-                    continue
+            # assign the total duration if it was found. this can happen multiple times for multiple inputs,
+            # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
+            if total_dur_match := self.DUR_REGEX.search(stderr_line):
+                total_dur_ms = to_ms(**total_dur_match.groupdict())
+                if total_dur is not None:
+                    total_dur = (
+                        min(total_dur, total_dur_ms)
+                        if "-shortest" in self.cmd
+                        else max(total_dur, total_dur_ms)
+                    )
+                else:
+                    total_dur = total_dur_ms
 
-            if total_dur:
-                progress_time = FfmpegProgress.TIME_REGEX.search(stderr_line)
-                if progress_time:
-                    elapsed_time = to_ms(**progress_time.groupdict())
-                    yield round(elapsed_time / total_dur * 100, 2)
+            if (
+                progress_time := FfmpegProgress.TIME_REGEX.search(stderr_line)
+            ) and total_dur is not None:
+                elapsed_time = to_ms(**progress_time.groupdict())
+                yield min(max(round(elapsed_time / total_dur * 100, 2), 0), 100)
 
         if self.process is None or self.process.returncode != 0:
             _pretty_stderr = "\n".join(stderr)
