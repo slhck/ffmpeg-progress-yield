@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 from typing import Any, Callable, Iterator, List, Optional, Union
+from PIL import Image
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -11,6 +12,14 @@ def to_ms(**kwargs: Union[float, int, str]) -> int:
     ms = int(kwargs.get("ms", 0))
 
     return (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
+
+
+def _check_if_image(file_name: str) -> bool:
+    try:
+        Image.open(file_name)
+    except IOError:
+        return False
+    return True
 
 
 def _probe_duration(cmd: List[str]) -> Optional[int]:
@@ -30,7 +39,7 @@ def _probe_duration(cmd: List[str]) -> Optional[int]:
             file_name = cmd[i + 1]
 
             # filter for filenames that we can probe, i.e. regular files
-            if os.path.isfile(file_name):
+            if os.path.isfile(file_name) and not _check_if_image(file_name):
                 file_names.append(file_name)
 
     if len(file_names) == 0:
