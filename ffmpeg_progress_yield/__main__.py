@@ -31,7 +31,7 @@ def main() -> None:
     try:
         from tqdm import tqdm
 
-        with tqdm(total=100, position=1, desc="Test") as pbar:
+        with tqdm(total=100, position=1, desc="Progress") as pbar:
             for progress in ff.run_command_with_progress(
                 duration_override=args.duration
             ):
