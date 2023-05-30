@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v0.7.5 (2023-05-30)
+
+* Fix duration for multiple inputs, fixes #13.
+
+* Fix 'Test' string in tqdm.
+
+
 ## v0.7.4 (2023-05-06)
 
 * Fix: round percentage numbers.
