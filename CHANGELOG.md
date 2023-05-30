@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.7.6 (2023-05-30)
+
+* Always use duration_override if present.
+
+
 ## v0.7.5 (2023-05-30)
 
 * Fix duration for multiple inputs, fixes #13.
