@@ -181,7 +181,9 @@ class FfmpegProgress:
 
             # assign the total duration if it was found. this can happen multiple times for multiple inputs,
             # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
-            if total_dur_match := self.DUR_REGEX.search(stderr_line):
+            if (
+                total_dur_match := self.DUR_REGEX.search(stderr_line)
+            ) and duration_override is None:
                 total_dur_ms = to_ms(**total_dur_match.groupdict())
                 if total_dur is not None:
                     total_dur = (
