@@ -73,6 +73,42 @@ def _uses_error_loglevel(cmd: List[str]) -> bool:
         return False
 
 
+def _get_inputs_with_options(cmd: List[str]) -> List[List[str]]:
+    """
+    Collect all inputs with their options.
+    For example, input is:
+
+        ffmpeg -i input1.mp4 -i input2.mp4 -i input3.mp4 -filter_complex ...
+
+    Output is:
+
+        [
+            ["-i", "input1.mp4"],
+            ["-i", "input2.mp4"],
+            ["-i", "input3.mp4"],
+        ]
+
+    Another example:
+
+        ffmpeg -f lavfi -i color=c=black:s=1920x1080 -loop 1 -i image.png -filter_complex ...
+
+    Output is:
+
+        [
+            ["-f", "lavfi", "-i", "color=c=black:s=1920x1080"],
+            ["-loop", "1", "-i", "image.png"],
+        ]
+    """
+    inputs = []
+    prev_index = 0
+    for i, arg in enumerate(cmd):
+        if arg == "-i":
+            inputs.append(cmd[prev_index : i + 2])
+            prev_index = i + 2
+
+    return inputs
+
+
 class FfmpegProgress:
     DUR_REGEX = re.compile(
         r"Duration: (?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})\.(?P<ms>\d{2})"
@@ -149,6 +185,9 @@ class FfmpegProgress:
             [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
         )
 
+        # collect all inputs with their options, e.g.
+        inputs_with_options = _get_inputs_with_options(self.cmd)
+
         stderr = []
         base_popen_kwargs = self.base_popen_kwargs.copy()
         if popen_kwargs is not None:
@@ -160,6 +199,8 @@ class FfmpegProgress:
         )  # type: ignore
 
         yield 0
+
+        input_idx = 0
 
         while True:
             if self.process.stdout is None:
@@ -182,17 +223,30 @@ class FfmpegProgress:
             # assign the total duration if it was found. this can happen multiple times for multiple inputs,
             # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
             if (
-                total_dur_match := self.DUR_REGEX.search(stderr_line)
+                current_dur_match := self.DUR_REGEX.search(stderr_line)
             ) and duration_override is None:
-                total_dur_ms = to_ms(**total_dur_match.groupdict())
-                if total_dur is not None:
+                input_options = inputs_with_options[input_idx]
+
+                current_dur_ms: int = to_ms(**current_dur_match.groupdict())
+                # if the previous line had "image2", it's a single image and we assume a really short intrinsic duration (4ms),
+                # but if it's a loop, we assume infinity
+                if "image2" in stderr[-2] and "-loop 1" in " ".join(input_options):
+                    # infinity
+                    current_dur_ms = 2**64
+                if "-shortest" in self.cmd:
                     total_dur = (
-                        min(total_dur, total_dur_ms)
-                        if "-shortest" in self.cmd
-                        else max(total_dur, total_dur_ms)
+                        min(total_dur, current_dur_ms)
+                        if total_dur is not None
+                        else current_dur_ms
                     )
                 else:
-                    total_dur = total_dur_ms
+                    total_dur = (
+                        max(total_dur, current_dur_ms)
+                        if total_dur is not None
+                        else current_dur_ms
+                    )
+
+                input_idx += 1
 
             if (
                 progress_time := FfmpegProgress.TIME_REGEX.search(stderr_line)
