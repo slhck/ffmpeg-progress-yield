@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v0.7.8 (2023-06-01)
+
+* Image handling.
+
+  Check if image2 inputs use looping or not, and set duration to infinity if needed
+
+
 ## v0.7.6 (2023-05-30)
 
 * Always use duration_override if present.
