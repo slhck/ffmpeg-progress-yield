@@ -3,7 +3,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://pypi.org/project/ffmpeg-progress-yield) [![Python package](https://github.com/slhck/ffmpeg-normalize/actions/workflows/python-package.yml/badge.svg)](https://github.com/slhck/ffmpeg-normalize/actions/workflows/python-package.yml)
+[![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://pypi.org/project/ffmpeg-progress-yield) [![Python package](https://github.com/slhck/ffmpeg-progress-yield/actions/workflows/python-package.yml/badge.svg)](https://github.com/slhck/ffmpeg-progress-yield/actions/workflows/python-package.yml)
 
 Run an ffmpeg command with its progress yielded.
 
