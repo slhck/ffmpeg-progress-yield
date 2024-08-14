@@ -172,7 +172,9 @@ class FfmpegProgress:
             Iterator[float]: A generator that yields the progress in percent.
         """
         if self.dry_run:
-            return self.cmd
+            yield 0
+            yield 100
+            return
 
         total_dur: Union[None, int] = None
         if _uses_error_loglevel(self.cmd):
