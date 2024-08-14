@@ -36,6 +36,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "ammgws",
+      "name": "Jason Nader",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20397027?v=4",
+      "profile": "https://github.com/ammgws",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
