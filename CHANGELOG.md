@@ -1,6 +1,17 @@
 # Changelog
 
 
+## v0.7.9 (2024-08-14)
+
+* Docs: add @ammgws as a contributor.
+
+* Fix typing error.
+
+* Chore: remove unused dependency.
+
+* Fix badge link.
+
+
 ## v0.7.8 (2023-06-01)
 
 * Image handling.
