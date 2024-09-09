@@ -2,7 +2,7 @@ import asyncio
 import os
 import re
 import subprocess
-from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Tuple, Union
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -156,7 +156,7 @@ class FfmpegProgress:
 
     def _prepare_command(
         self, duration_override: Union[float, None] = None
-    ) -> tuple[List[str], List[List[str]], Union[int, None]]:
+    ) -> Tuple[List[str], List[List[str]], Union[int, None]]:
         """Prepare the command for running with progress.
 
         This includes an override of the total duration, just so we can avoid some code
@@ -166,7 +166,7 @@ class FfmpegProgress:
             duration_override (Union[float, None], optional): Override the duration of the video. Defaults to None.
 
         Returns:
-            tuple[List[str], List[List[str]], Union[int, None]]: The command, the inputs with options, and the total duration.
+            Tuple[List[str], List[List[str]], Union[int, None]]: The command, the inputs with options, and the total duration.
         """
         total_dur: Union[None, int] = None
         if _uses_error_loglevel(self.cmd):
@@ -189,7 +189,7 @@ class FfmpegProgress:
         total_dur: Union[int, None],
         duration_override: Union[float, None],
         input_idx: int,
-    ) -> tuple[Union[int, None], int, Union[None, float]]:
+    ) -> Tuple[Union[int, None], int, Union[None, float]]:
         """
         Process the output of the ffmpeg command.
 
@@ -201,7 +201,7 @@ class FfmpegProgress:
             input_idx (int): The index of the input.
 
         Returns:
-            tuple[Union[int, None], int, Union[None, float]]: The total duration, the index of the input, and the progress.
+            Tuple[Union[int, None], int, Union[None, float]]: The total duration, the index of the input, and the progress.
         """
 
         if self.stderr_callback:
@@ -270,7 +270,7 @@ class FfmpegProgress:
             duration_override
         )
 
-        stderr: list[str] = []
+        stderr: List[str] = []
         base_popen_kwargs = self.base_popen_kwargs.copy()
         if popen_kwargs is not None:
             base_popen_kwargs.update(popen_kwargs)
@@ -328,7 +328,7 @@ class FfmpegProgress:
             duration_override
         )
 
-        stderr: list[str] = []
+        stderr: List[str] = []
         base_popen_kwargs = self.base_popen_kwargs.copy()
         if popen_kwargs is not None:
             base_popen_kwargs.update(popen_kwargs)
