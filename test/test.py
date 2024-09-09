@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
 
 from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
@@ -143,3 +145,45 @@ class TestProgress:
         ret = subprocess.run(cmd, capture_output=True, universal_newlines=True)
         assert "0/100" in ret.stderr
         assert "100.0/100" in ret.stderr or "100/100" in ret.stderr
+
+
+class TestAsyncLibrary:
+    cmd = TestLibrary.cmd
+
+    @pytest.mark.asyncio
+    async def test_async_library(self):
+        ff = FfmpegProgress(TestAsyncLibrary.cmd)
+        elapsed = 0
+        async for progress in ff.async_run_command_with_progress():
+            print(f"{progress}/100")
+            assert progress >= elapsed
+            elapsed = progress
+        # assert that we get 100% progress
+        assert elapsed == 100
+
+    @pytest.mark.asyncio
+    async def test_async_quit(self):
+        ff = FfmpegProgress(TestAsyncLibrary.cmd)
+        proc = None
+        async for progress in ff.async_run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0:
+                proc = ff.process
+                await ff.async_quit()
+                break
+        assert proc is not None
+        await proc.wait()
+        assert proc.returncode != 0
+
+    @pytest.mark.asyncio
+    async def test_async_quit_gracefully(self):
+        ff = FfmpegProgress(TestAsyncLibrary.cmd)
+        proc = None
+        async for progress in ff.async_run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0 and ff.process is not None:
+                proc = ff.process
+                await ff.async_quit_gracefully()
+                break
+        assert proc is not None
+        assert proc.returncode == 0

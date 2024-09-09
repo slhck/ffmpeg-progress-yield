@@ -1,7 +1,8 @@
+import asyncio
 import os
 import re
 import subprocess
-from typing import Any, Callable, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Union
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -153,6 +154,96 @@ class FfmpegProgress:
 
         self.stderr_callback = callback
 
+    def _prepare_command(
+        self, duration_override: Union[float, None] = None
+    ) -> tuple[List[str], List[List[str]], Union[int, None]]:
+        """Prepare the command for running with progress.
+
+        This includes an override of the total duration, just so we can avoid some code
+        duplication between the sync and async methods.
+
+        Args:
+            duration_override (Union[float, None], optional): Override the duration of the video. Defaults to None.
+
+        Returns:
+            tuple[List[str], List[List[str]], Union[int, None]]: The command, the inputs with options, and the total duration.
+        """
+        total_dur: Union[None, int] = None
+        if _uses_error_loglevel(self.cmd):
+            total_dur = _probe_duration(self.cmd)
+
+        if duration_override is not None:
+            total_dur = int(duration_override * 1000)
+
+        cmd_with_progress = (
+            [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
+        )
+        inputs_with_options = _get_inputs_with_options(self.cmd)
+
+        return cmd_with_progress, inputs_with_options, total_dur
+
+    def _process_output(
+        self,
+        stderr_line: str,
+        stderr: List[str],
+        total_dur: Union[int, None],
+        duration_override: Union[float, None],
+        input_idx: int,
+    ) -> tuple[Union[int, None], int, Union[None, float]]:
+        """
+        Process the output of the ffmpeg command.
+
+        Args:
+            stderr_line (str): The line of stderr output.
+            stderr (List[str]): The list of stderr output.
+            total_dur (Union[int, None]): The total duration of the video.
+            duration_override (Union[float, None]): The duration of the video in seconds.
+            input_idx (int): The index of the input.
+
+        Returns:
+            tuple[Union[int, None], int, Union[None, float]]: The total duration, the index of the input, and the progress.
+        """
+
+        if self.stderr_callback:
+            self.stderr_callback(stderr_line)
+
+        stderr.append(stderr_line.strip())
+        self.stderr = "\n".join(stderr)
+
+        progress = None
+        # assign the total duration if it was found. this can happen multiple times for multiple inputs,
+        # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
+        if (
+            current_dur_match := self.DUR_REGEX.search(stderr_line)
+        ) and duration_override is None:
+            input_options = self.inputs_with_options[input_idx]
+            current_dur_ms: int = to_ms(**current_dur_match.groupdict())
+            # if the previous line had "image2", it's a single image and we assume a really short intrinsic duration (4ms),
+            # but if it's a loop, we assume infinity
+            if "image2" in stderr[-2] and "-loop 1" in " ".join(input_options):
+                current_dur_ms = 2**64
+            if "-shortest" in self.cmd:
+                total_dur = (
+                    min(total_dur, current_dur_ms)
+                    if total_dur is not None
+                    else current_dur_ms
+                )
+            else:
+                total_dur = (
+                    max(total_dur, current_dur_ms)
+                    if total_dur is not None
+                    else current_dur_ms
+                )
+            input_idx += 1
+
+        if (
+            progress_time := self.TIME_REGEX.search(stderr_line)
+        ) and total_dur is not None:
+            elapsed_time = to_ms(**progress_time.groupdict())
+            progress = min(max(round(elapsed_time / total_dur * 100, 2), 0), 100)
+
+        return total_dur, input_idx, progress
+
     def run_command_with_progress(
         self, popen_kwargs=None, duration_override: Union[float, None] = None
     ) -> Iterator[float]:
@@ -172,93 +263,111 @@ class FfmpegProgress:
             Iterator[float]: A generator that yields the progress in percent.
         """
         if self.dry_run:
-            yield 0
-            yield 100
+            yield from [0, 100]
             return
 
-        total_dur: Union[None, int] = None
-        if _uses_error_loglevel(self.cmd):
-            total_dur = _probe_duration(self.cmd)
-
-        if duration_override is not None:
-            total_dur = int(duration_override * 1000)
-
-        cmd_with_progress = (
-            [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
+        cmd_with_progress, self.inputs_with_options, total_dur = self._prepare_command(
+            duration_override
         )
 
-        # collect all inputs with their options, e.g.
-        inputs_with_options = _get_inputs_with_options(self.cmd)
-
-        stderr = []
+        stderr: list[str] = []
         base_popen_kwargs = self.base_popen_kwargs.copy()
         if popen_kwargs is not None:
             base_popen_kwargs.update(popen_kwargs)
 
-        self.process = subprocess.Popen(
-            cmd_with_progress,
-            **base_popen_kwargs,
-        )  # type: ignore
+        self.process = subprocess.Popen(cmd_with_progress, **base_popen_kwargs)  # type: ignore
 
         yield 0
 
-        input_idx = 0
+        input_idx: int = 0
 
         while True:
             if self.process.stdout is None:
                 continue
 
-            stderr_line = (
+            stderr_line: str = (
                 self.process.stdout.readline().decode("utf-8", errors="replace").strip()
             )
-
-            if self.stderr_callback:
-                self.stderr_callback(stderr_line)
 
             if stderr_line == "" and self.process.poll() is not None:
                 break
 
-            stderr.append(stderr_line.strip())
+            total_dur, input_idx, progress = self._process_output(
+                stderr_line, stderr, total_dur, duration_override, input_idx
+            )
+            if progress is not None:
+                yield progress
 
-            self.stderr = "\n".join(stderr)
+        if self.process.returncode != 0:
+            raise RuntimeError(f"Error running command {self.cmd}: {self.stderr}")
 
-            # assign the total duration if it was found. this can happen multiple times for multiple inputs,
-            # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
-            if (
-                current_dur_match := self.DUR_REGEX.search(stderr_line)
-            ) and duration_override is None:
-                input_options = inputs_with_options[input_idx]
+        yield 100
+        self.process = None
 
-                current_dur_ms: int = to_ms(**current_dur_match.groupdict())
-                # if the previous line had "image2", it's a single image and we assume a really short intrinsic duration (4ms),
-                # but if it's a loop, we assume infinity
-                if "image2" in stderr[-2] and "-loop 1" in " ".join(input_options):
-                    # infinity
-                    current_dur_ms = 2**64
-                if "-shortest" in self.cmd:
-                    total_dur = (
-                        min(total_dur, current_dur_ms)
-                        if total_dur is not None
-                        else current_dur_ms
+    async def async_run_command_with_progress(
+        self, popen_kwargs=None, duration_override: Union[float, None] = None
+    ) -> AsyncIterator[float]:
+        """
+        Asynchronously run an ffmpeg command, trying to capture the process output and calculate
+        the duration / progress.
+        Yields the progress in percent.
+
+        Args:
+            popen_kwargs (dict, optional): A dict to specify extra arguments to the popen call, e.g. { creationflags: CREATE_NO_WINDOW }
+            duration_override (float, optional): The duration in seconds. If not specified, it will be calculated from the ffmpeg output.
+
+        Raises:
+            RuntimeError: If the command fails, an exception is raised.
+        """
+        if self.dry_run:
+            yield 0
+            yield 100
+            return
+
+        cmd_with_progress, self.inputs_with_options, total_dur = self._prepare_command(
+            duration_override
+        )
+
+        stderr: list[str] = []
+        base_popen_kwargs = self.base_popen_kwargs.copy()
+        if popen_kwargs is not None:
+            base_popen_kwargs.update(popen_kwargs)
+
+        # Remove stdout and stderr from base_popen_kwargs as we're setting them explicitly
+        base_popen_kwargs.pop("stdout", None)
+        base_popen_kwargs.pop("stderr", None)
+
+        self.process = await asyncio.create_subprocess_exec(
+            *cmd_with_progress,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            **base_popen_kwargs,  # type: ignore
+        )
+
+        yield 0
+
+        input_idx: int = 0
+
+        while True:
+            if self.process.stdout is None:
+                continue
+
+            stderr_line: Union[bytes, None] = await self.process.stdout.readline()
+            if not stderr_line:
+                # Process has finished, check the return code
+                await self.process.wait()
+                if self.process.returncode != 0:
+                    raise RuntimeError(
+                        f"Error running command {self.cmd}: {self.stderr}"
                     )
-                else:
-                    total_dur = (
-                        max(total_dur, current_dur_ms)
-                        if total_dur is not None
-                        else current_dur_ms
-                    )
+                break
+            stderr_line_str = stderr_line.decode("utf-8", errors="replace").strip()
 
-                input_idx += 1
-
-            if (
-                progress_time := FfmpegProgress.TIME_REGEX.search(stderr_line)
-            ) and total_dur is not None:
-                elapsed_time = to_ms(**progress_time.groupdict())
-                yield min(max(round(elapsed_time / total_dur * 100, 2), 0), 100)
-
-        if self.process is None or self.process.returncode != 0:
-            _pretty_stderr = "\n".join(stderr)
-            raise RuntimeError(f"Error running command {self.cmd}: {_pretty_stderr}")
+            total_dur, input_idx, progress = self._process_output(
+                stderr_line_str, stderr, total_dur, duration_override, input_idx
+            )
+            if progress is not None:
+                yield progress
 
         yield 100
         self.process = None
@@ -288,4 +397,33 @@ class FfmpegProgress:
             raise RuntimeError("No process found. Did you run the command?")
 
         self.process.kill()
+        self.process = None
+
+    async def async_quit_gracefully(self) -> None:
+        """
+        Quit the ffmpeg process by sending 'q' asynchronously
+
+        Raises:
+            RuntimeError: If no process is found.
+        """
+        if self.process is None:
+            raise RuntimeError("No process found. Did you run the command?")
+
+        self.process.stdin.write(b"q")
+        await self.process.stdin.drain()
+        await self.process.wait()
+        self.process = None
+
+    async def async_quit(self) -> None:
+        """
+        Quit the ffmpeg process by sending SIGKILL asynchronously.
+
+        Raises:
+            RuntimeError: If no process is found.
+        """
+        if self.process is None:
+            raise RuntimeError("No process found. Did you run the command?")
+
+        self.process.kill()
+        await self.process.wait()
         self.process = None
