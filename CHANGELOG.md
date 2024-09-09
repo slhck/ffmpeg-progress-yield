@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.8.1 (2024-09-09)
+
+* Fix type-checks.
+
+
 ## v0.8.0 (2024-09-09)
 
 * Add async support.
