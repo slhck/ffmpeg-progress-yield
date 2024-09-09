@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.8.0 (2024-09-09)
+
+* Add async support.
+
+
 ## v0.7.9 (2024-08-14)
 
 * Docs: add @ammgws as a contributor.
