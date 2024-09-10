@@ -2,7 +2,7 @@ import asyncio
 import os
 import re
 import subprocess
-from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Tuple, Union
+from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Union
 
 
 def to_ms(**kwargs: Union[float, int, str]) -> int:
@@ -12,102 +12,6 @@ def to_ms(**kwargs: Union[float, int, str]) -> int:
     ms = int(kwargs.get("ms", 0))
 
     return (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (sec * 1000) + ms
-
-
-def _probe_duration(cmd: List[str]) -> Optional[int]:
-    """
-    Get the duration via ffprobe from input media file
-    in case ffmpeg was run with loglevel=error.
-
-    Args:
-        cmd (List[str]): A list of command line elements, e.g. ["ffmpeg", "-i", ...]
-
-    Returns:
-        Optional[int]: The duration in milliseconds.
-    """
-    file_names = []
-    for i, arg in enumerate(cmd):
-        if arg == "-i":
-            file_name = cmd[i + 1]
-
-            # filter for filenames that we can probe, i.e. regular files
-            if os.path.isfile(file_name):
-                file_names.append(file_name)
-
-    if len(file_names) == 0:
-        return None
-
-    durations = []
-
-    for file_name in file_names:
-        try:
-            output = subprocess.check_output(
-                [
-                    "ffprobe",
-                    "-loglevel",
-                    "error",
-                    "-hide_banner",
-                    "-show_entries",
-                    "format=duration",
-                    "-of",
-                    "default=noprint_wrappers=1:nokey=1",
-                    file_name,
-                ],
-                universal_newlines=True,
-            )
-            durations.append(int(float(output.strip()) * 1000))
-        except Exception:
-            # TODO: add logging
-            return None
-
-    return max(durations) if "-shortest" not in cmd else min(durations)
-
-
-def _uses_error_loglevel(cmd: List[str]) -> bool:
-    try:
-        idx = cmd.index("-loglevel")
-        if cmd[idx + 1] == "error":
-            return True
-        else:
-            return False
-    except ValueError:
-        return False
-
-
-def _get_inputs_with_options(cmd: List[str]) -> List[List[str]]:
-    """
-    Collect all inputs with their options.
-    For example, input is:
-
-        ffmpeg -i input1.mp4 -i input2.mp4 -i input3.mp4 -filter_complex ...
-
-    Output is:
-
-        [
-            ["-i", "input1.mp4"],
-            ["-i", "input2.mp4"],
-            ["-i", "input3.mp4"],
-        ]
-
-    Another example:
-
-        ffmpeg -f lavfi -i color=c=black:s=1920x1080 -loop 1 -i image.png -filter_complex ...
-
-    Output is:
-
-        [
-            ["-f", "lavfi", "-i", "color=c=black:s=1920x1080"],
-            ["-loop", "1", "-i", "image.png"],
-        ]
-    """
-    inputs = []
-    prev_index = 0
-    for i, arg in enumerate(cmd):
-        if arg == "-i":
-            inputs.append(cmd[prev_index : i + 2])
-            prev_index = i + 2
-
-    return inputs
 
 
 class FfmpegProgress:
@@ -137,71 +41,32 @@ class FfmpegProgress:
             "universal_newlines": False,
         }
 
-    def set_stderr_callback(self, callback: Callable[[str], None]) -> None:
-        """
-        Set a callback function to be called on stderr output.
-        The callback function must accept a single string argument.
-        Note that this is called on every line of stderr output, so it can be called a lot.
-        Also note that stdout/stderr are joined into one stream, so you might get stdout output in the callback.
-
-        Args:
-            callback (Callable[[str], None]): A callback function that accepts a single string argument.
-        """
-        if not callable(callback) or len(callback.__code__.co_varnames) != 1:
-            raise ValueError(
-                "Callback must be a function that accepts only one argument"
-            )
-
-        self.stderr_callback = callback
-
-    def _prepare_command(
-        self, duration_override: Union[float, None] = None
-    ) -> Tuple[List[str], List[List[str]], Union[int, None]]:
-        """Prepare the command for running with progress.
-
-        This includes an override of the total duration, just so we can avoid some code
-        duplication between the sync and async methods.
-
-        Args:
-            duration_override (Union[float, None], optional): Override the duration of the video. Defaults to None.
-
-        Returns:
-            Tuple[List[str], List[List[str]], Union[int, None]]: The command, the inputs with options, and the total duration.
-        """
-        total_dur: Union[None, int] = None
-        if _uses_error_loglevel(self.cmd):
-            total_dur = _probe_duration(self.cmd)
-
-        if duration_override is not None:
-            total_dur = int(duration_override * 1000)
-
-        cmd_with_progress = (
+        self.cmd_with_progress = (
             [self.cmd[0]] + ["-progress", "-", "-nostats"] + self.cmd[1:]
         )
-        inputs_with_options = _get_inputs_with_options(self.cmd)
+        self.inputs_with_options = FfmpegProgress._get_inputs_with_options(self.cmd)
 
-        return cmd_with_progress, inputs_with_options, total_dur
+        self.current_input_idx: int = 0
+        self.total_dur: Union[None, int] = None
+        if FfmpegProgress._uses_error_loglevel(self.cmd):
+            self.total_dur = FfmpegProgress._probe_duration(self.cmd)
 
     def _process_output(
         self,
         stderr_line: str,
         stderr: List[str],
-        total_dur: Union[int, None],
         duration_override: Union[float, None],
-        input_idx: int,
-    ) -> Tuple[Union[int, None], int, Union[None, float]]:
+    ) -> Union[int, None]:
         """
         Process the output of the ffmpeg command.
 
         Args:
             stderr_line (str): The line of stderr output.
             stderr (List[str]): The list of stderr output.
-            total_dur (Union[int, None]): The total duration of the video.
             duration_override (Union[float, None]): The duration of the video in seconds.
-            input_idx (int): The index of the input.
 
         Returns:
-            Tuple[Union[int, None], int, Union[None, float]]: The total duration, the index of the input, and the progress.
+            Union[int, None]: The progress in percent.
         """
 
         if self.stderr_callback:
@@ -210,39 +75,137 @@ class FfmpegProgress:
         stderr.append(stderr_line.strip())
         self.stderr = "\n".join(stderr)
 
-        progress = None
+        progress: Union[int, None] = None
         # assign the total duration if it was found. this can happen multiple times for multiple inputs,
         # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
         if (
             current_dur_match := self.DUR_REGEX.search(stderr_line)
         ) and duration_override is None:
-            input_options = self.inputs_with_options[input_idx]
+            input_options = self.inputs_with_options[self.current_input_idx]
             current_dur_ms: int = to_ms(**current_dur_match.groupdict())
             # if the previous line had "image2", it's a single image and we assume a really short intrinsic duration (4ms),
             # but if it's a loop, we assume infinity
             if "image2" in stderr[-2] and "-loop 1" in " ".join(input_options):
                 current_dur_ms = 2**64
             if "-shortest" in self.cmd:
-                total_dur = (
-                    min(total_dur, current_dur_ms)
-                    if total_dur is not None
+                self.total_dur = (
+                    min(self.total_dur, current_dur_ms)
+                    if self.total_dur is not None
                     else current_dur_ms
                 )
             else:
-                total_dur = (
-                    max(total_dur, current_dur_ms)
-                    if total_dur is not None
+                self.total_dur = (
+                    max(self.total_dur, current_dur_ms)
+                    if self.total_dur is not None
                     else current_dur_ms
                 )
-            input_idx += 1
+            self.current_input_idx += 1
 
         if (
             progress_time := self.TIME_REGEX.search(stderr_line)
-        ) and total_dur is not None:
+        ) and self.total_dur is not None:
             elapsed_time = to_ms(**progress_time.groupdict())
-            progress = min(max(round(elapsed_time / total_dur * 100, 2), 0), 100)
+            progress = int(
+                min(max(round(elapsed_time / self.total_dur * 100, 2), 0), 100)
+            )
 
-        return total_dur, input_idx, progress
+        return progress
+
+    @staticmethod
+    def _probe_duration(cmd: List[str]) -> Optional[int]:
+        """
+        Get the duration via ffprobe from input media file
+        in case ffmpeg was run with loglevel=error.
+
+        Args:
+            cmd (List[str]): A list of command line elements, e.g. ["ffmpeg", "-i", ...]
+
+        Returns:
+            Optional[int]: The duration in milliseconds.
+        """
+        file_names = []
+        for i, arg in enumerate(cmd):
+            if arg == "-i":
+                file_name = cmd[i + 1]
+
+                # filter for filenames that we can probe, i.e. regular files
+                if os.path.isfile(file_name):
+                    file_names.append(file_name)
+
+        if len(file_names) == 0:
+            return None
+
+        durations = []
+
+        for file_name in file_names:
+            try:
+                output = subprocess.check_output(
+                    [
+                        "ffprobe",
+                        "-loglevel",
+                        "error",
+                        "-hide_banner",
+                        "-show_entries",
+                        "format=duration",
+                        "-of",
+                        "default=noprint_wrappers=1:nokey=1",
+                        file_name,
+                    ],
+                    universal_newlines=True,
+                )
+                durations.append(int(float(output.strip()) * 1000))
+            except Exception:
+                # TODO: add logging
+                return None
+
+        return max(durations) if "-shortest" not in cmd else min(durations)
+
+    @staticmethod
+    def _uses_error_loglevel(cmd: List[str]) -> bool:
+        try:
+            idx = cmd.index("-loglevel")
+            if cmd[idx + 1] == "error":
+                return True
+            else:
+                return False
+        except ValueError:
+            return False
+
+    @staticmethod
+    def _get_inputs_with_options(cmd: List[str]) -> List[List[str]]:
+        """
+        Collect all inputs with their options.
+        For example, input is:
+
+            ffmpeg -i input1.mp4 -i input2.mp4 -i input3.mp4 -filter_complex ...
+
+        Output is:
+
+            [
+                ["-i", "input1.mp4"],
+                ["-i", "input2.mp4"],
+                ["-i", "input3.mp4"],
+            ]
+
+        Another example:
+
+            ffmpeg -f lavfi -i color=c=black:s=1920x1080 -loop 1 -i image.png -filter_complex ...
+
+        Output is:
+
+            [
+                ["-f", "lavfi", "-i", "color=c=black:s=1920x1080"],
+                ["-loop", "1", "-i", "image.png"],
+            ]
+        """
+        inputs = []
+        prev_index = 0
+        for i, arg in enumerate(cmd):
+            if arg == "-i":
+                inputs.append(cmd[prev_index : i + 2])
+                prev_index = i + 2
+
+        return inputs
 
     def run_command_with_progress(
         self, popen_kwargs=None, duration_override: Union[float, None] = None
@@ -266,21 +229,18 @@ class FfmpegProgress:
             yield from [0, 100]
             return
 
-        cmd_with_progress, self.inputs_with_options, total_dur = self._prepare_command(
-            duration_override
-        )
+        if duration_override:
+            self.total_dur = int(duration_override * 1000)
 
-        stderr: List[str] = []
         base_popen_kwargs = self.base_popen_kwargs.copy()
         if popen_kwargs is not None:
             base_popen_kwargs.update(popen_kwargs)
 
-        self.process = subprocess.Popen(cmd_with_progress, **base_popen_kwargs)  # type: ignore
+        self.process = subprocess.Popen(self.cmd_with_progress, **base_popen_kwargs)  # type: ignore
 
         yield 0
 
-        input_idx: int = 0
-
+        stderr: List[str] = []
         while True:
             if self.process.stdout is None:
                 continue
@@ -292,9 +252,7 @@ class FfmpegProgress:
             if stderr_line == "" and self.process.poll() is not None:
                 break
 
-            total_dur, input_idx, progress = self._process_output(
-                stderr_line, stderr, total_dur, duration_override, input_idx
-            )
+            progress = self._process_output(stderr_line, stderr, duration_override)
             if progress is not None:
                 yield progress
 
@@ -324,11 +282,9 @@ class FfmpegProgress:
             yield 100
             return
 
-        cmd_with_progress, self.inputs_with_options, total_dur = self._prepare_command(
-            duration_override
-        )
+        if duration_override:
+            self.total_dur = int(duration_override * 1000)
 
-        stderr: List[str] = []
         base_popen_kwargs = self.base_popen_kwargs.copy()
         if popen_kwargs is not None:
             base_popen_kwargs.update(popen_kwargs)
@@ -338,7 +294,7 @@ class FfmpegProgress:
         base_popen_kwargs.pop("stderr", None)
 
         self.process = await asyncio.create_subprocess_exec(
-            *cmd_with_progress,
+            *self.cmd_with_progress,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             **base_popen_kwargs,  # type: ignore
@@ -346,8 +302,7 @@ class FfmpegProgress:
 
         yield 0
 
-        input_idx: int = 0
-
+        stderr: List[str] = []
         while True:
             if self.process.stdout is None:
                 continue
@@ -363,9 +318,7 @@ class FfmpegProgress:
                 break
             stderr_line_str = stderr_line.decode("utf-8", errors="replace").strip()
 
-            total_dur, input_idx, progress = self._process_output(
-                stderr_line_str, stderr, total_dur, duration_override, input_idx
-            )
+            progress = self._process_output(stderr_line_str, stderr, duration_override)
             if progress is not None:
                 yield progress
 
@@ -427,3 +380,20 @@ class FfmpegProgress:
         self.process.kill()
         await self.process.wait()
         self.process = None
+
+    def set_stderr_callback(self, callback: Callable[[str], None]) -> None:
+        """
+        Set a callback function to be called on stderr output.
+        The callback function must accept a single string argument.
+        Note that this is called on every line of stderr output, so it can be called a lot.
+        Also note that stdout/stderr are joined into one stream, so you might get stdout output in the callback.
+
+        Args:
+            callback (Callable[[str], None]): A callback function that accepts a single string argument.
+        """
+        if not callable(callback) or len(callback.__code__.co_varnames) != 1:
+            raise ValueError(
+                "Callback must be a function that accepts only one argument"
+            )
+
+        self.stderr_callback = callback
