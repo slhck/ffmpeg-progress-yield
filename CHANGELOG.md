@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.9.1 (2024-09-16)
+
+* Fix: the logic of the option --progress-only.
+
+
 ## v0.9.0 (2024-09-16)
 
 * Docs: add @LaunchLee as a contributor.
