@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v0.9.0 (2024-09-16)
+
+* Docs: add @LaunchLee as a contributor.
+
+* Chore: Add an option to print progress only in cli usage.
+
+  This option makes the output cleaner when doing batch conversions.
+
+* Code cleanup, refactoring.
+
+  To avoid having to juggle around variables
+
+
 ## v0.8.1 (2024-09-09)
 
 * Fix type-checks.
