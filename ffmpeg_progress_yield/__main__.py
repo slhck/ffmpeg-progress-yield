@@ -19,6 +19,12 @@ def main() -> None:
         "-n", "--dry-run", action="store_true", help="Print ffmpeg command and exit."
     )
     parser.add_argument(
+        "-p",
+        "--progress-only",
+        action="store_true",
+        help="Print progress only and do not print stderr at exit."
+    )
+    parser.add_argument(
         "ffmpeg_command",
         type=str,
         nargs=argparse.REMAINDER,
@@ -40,7 +46,10 @@ def main() -> None:
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
 
-    print(ff.stderr)
+    if args.progress_only:
+        print("\x1B[K")
+    else:
+        print(ff.stderr)
 
 
 if __name__ == "__main__":
