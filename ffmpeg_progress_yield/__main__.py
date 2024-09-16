@@ -47,9 +47,9 @@ def main() -> None:
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
 
-    if args.progress_only and platform.system() == "Windows":
-        print("\x1b[K")
-    else:
+    if platform.system() == "Windows":
+        print("\x1b[K", end="")
+    if not args.progress_only:
         print(ff.stderr)
 
 
