@@ -45,6 +45,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "LaunchLee",
+      "name": "Launch Lee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80872691?v=4",
+      "profile": "https://github.com/LaunchLee",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

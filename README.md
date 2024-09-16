@@ -1,6 +1,6 @@
 # ffmpeg-progress-yield
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://pypi.org/project/ffmpeg-progress-yield) [![Python package](https://github.com/slhck/ffmpeg-progress-yield/actions/workflows/python-package.yml/badge.svg)](https://github.com/slhck/ffmpeg-progress-yield/actions/workflows/python-package.yml)
@@ -126,6 +126,7 @@ You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progr
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/WyattBlue"><img src="https://avatars.githubusercontent.com/u/57511737?v=4?s=100" width="100px;" alt="WyattBlue"/><br /><sub><b>WyattBlue</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/commits?author=WyattBlue" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kskadart"><img src="https://avatars.githubusercontent.com/u/120260513?v=4?s=100" width="100px;" alt="Kirill Konovalov"/><br /><sub><b>Kirill Konovalov</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/commits?author=kskadart" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ammgws"><img src="https://avatars.githubusercontent.com/u/20397027?v=4?s=100" width="100px;" alt="Jason Nader"/><br /><sub><b>Jason Nader</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/issues?q=author%3Aammgws" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/LaunchLee"><img src="https://avatars.githubusercontent.com/u/80872691?v=4?s=100" width="100px;" alt="Launch Lee"/><br /><sub><b>Launch Lee</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/commits?author=LaunchLee" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
