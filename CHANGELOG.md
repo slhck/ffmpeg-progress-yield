@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.10.0 (2024-11-18)
+
+* Fix: ensure percentage is always in float.
+
+
 ## v0.9.1 (2024-09-16)
 
 * Fix: the logic of the option --progress-only.
