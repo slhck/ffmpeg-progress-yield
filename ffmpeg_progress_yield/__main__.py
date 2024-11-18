@@ -38,7 +38,12 @@ def main() -> None:
     try:
         from tqdm import tqdm
 
-        with tqdm(total=100, position=1, desc="Progress") as pbar:
+        with tqdm(
+            total=100,
+            position=1,
+            desc="Progress",
+            bar_format="{desc}: {percentage:3.2f}% |{bar}{r_bar}",
+        ) as pbar:
             for progress in ff.run_command_with_progress(
                 duration_override=args.duration
             ):

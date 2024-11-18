@@ -56,7 +56,7 @@ class FfmpegProgress:
         stderr_line: str,
         stderr: List[str],
         duration_override: Union[float, None],
-    ) -> Union[int, None]:
+    ) -> Union[float, None]:
         """
         Process the output of the ffmpeg command.
 
@@ -66,7 +66,7 @@ class FfmpegProgress:
             duration_override (Union[float, None]): The duration of the video in seconds.
 
         Returns:
-            Union[int, None]: The progress in percent.
+            Union[float, None]: The progress in percent.
         """
 
         if self.stderr_callback:
@@ -75,7 +75,7 @@ class FfmpegProgress:
         stderr.append(stderr_line.strip())
         self.stderr = "\n".join(stderr)
 
-        progress: Union[int, None] = None
+        progress: Union[float, None] = None
         # assign the total duration if it was found. this can happen multiple times for multiple inputs,
         # in which case we have to determine the overall duration by taking the min/max (dependent on -shortest being present)
         if (
@@ -105,9 +105,7 @@ class FfmpegProgress:
             progress_time := self.TIME_REGEX.search(stderr_line)
         ) and self.total_dur is not None:
             elapsed_time = to_ms(**progress_time.groupdict())
-            progress = int(
-                min(max(round(elapsed_time / self.total_dur * 100, 2), 0), 100)
-            )
+            progress = min(max(round(elapsed_time / self.total_dur * 100, 2), 0), 100)
 
         return progress
 
