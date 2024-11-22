@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.11.0 (2024-11-22)
+
+* Remove python 3.8, add 3.12, 3.13.
+
+
 ## v0.10.0 (2024-11-18)
 
 * Fix: ensure percentage is always in float.
