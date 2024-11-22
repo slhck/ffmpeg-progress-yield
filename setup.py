@@ -19,7 +19,7 @@ with open(path.join(here, "CHANGELOG.md")) as f:
     history = f.read()
 
 setup(
-    name="ffmpeg-progress-yield",
+    name="ffmpeg_progress_yield",
     version=version,
     description="Run an ffmpeg command with progress",
     long_description=long_description + "\n\n" + history,
