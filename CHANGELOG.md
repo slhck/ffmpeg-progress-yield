@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.11.1 (2024-11-22)
+
+* Make setup name PEP 625 compliant.
+
+
 ## v0.11.0 (2024-11-22)
 
 * Remove python 3.8, add 3.12, 3.13.
