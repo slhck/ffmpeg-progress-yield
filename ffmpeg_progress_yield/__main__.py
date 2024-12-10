@@ -50,7 +50,7 @@ def main() -> None:
                 pbar.update(progress - pbar.n)
     except ImportError:
         for progress in ff.run_command_with_progress():
-            print(f"{progress}/100", end="\r")
+            print(f"\x1b[K{progress}/100", end="\r")
         print()
 
     if platform.system() == "Windows":
