@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.11.2 (2024-12-10)
+
+* Chore: One-liner progress when tqdm is not available.
+
+
 ## v0.11.1 (2024-11-22)
 
 * Make setup name PEP 625 compliant.
