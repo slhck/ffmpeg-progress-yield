@@ -1,6 +1,25 @@
 # Changelog
 
 
+## v0.11.3 (2024-12-11)
+
+* Fix: Clear and print progress when tqdm is not available.
+
+  This relates two printing sequence:
+
+  (1) Print one decimal place after printing two decimal places
+
+  0.74/100 -> 0.8/100 (1 less character)
+
+  (2) Print 100/100 after printing decimal progress
+
+  99.74/100 -> 100/100 (2 less characters)
+
+  99.8/100 -> 100/100 (1 less character)
+
+  So clear the line first, and print progress, showing for a moment, and then repeat, finally a newline. :)
+
+
 ## v0.11.2 (2024-12-10)
 
 * Chore: One-liner progress when tqdm is not available.
