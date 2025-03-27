@@ -115,8 +115,7 @@ class TestLibrary:
                 break
 
     def test_progress_with_loglevel_error(self):
-        cmd = TestLibrary.cmd
-        cmd.extend(["-loglevel", "error"])
+        cmd = TestLibrary.cmd + ["-loglevel", "error"]
         ff = FfmpegProgress(cmd)
         for progress in ff.run_command_with_progress():
             print(f"{progress}/100")
@@ -124,6 +123,23 @@ class TestLibrary:
                 assert 0 < progress < 100
                 break
 
+    def test_stderr_without_progress(self):
+        ff = FfmpegProgress(TestLibrary.cmd, exclude_progress=True)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0 and ff.stderr is not None:
+                assert len(ff.stderr) > 0
+                break
+        assert "out_time=" not in ff.stderr
+
+    def test_stderr_with_progress(self):
+        ff = FfmpegProgress(TestLibrary.cmd, exclude_progress=False)
+        for progress in ff.run_command_with_progress():
+            print(f"{progress}/100")
+            if progress > 0 and ff.stderr is not None:
+                assert len(ff.stderr) > 0
+                break
+        assert "out_time=" in ff.stderr
 
 class TestProgress:
     def test_progress(self):

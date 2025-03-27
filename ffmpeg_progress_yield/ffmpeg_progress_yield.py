@@ -21,8 +21,11 @@ class FfmpegProgress:
     TIME_REGEX = re.compile(
         r"out_time=(?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})\.(?P<ms>\d{2})"
     )
+    PROGRESS_REGEX = re.compile(
+        r"[a-z0-9_]+=.+"
+    )
 
-    def __init__(self, cmd: List[str], dry_run: bool = False) -> None:
+    def __init__(self, cmd: List[str], dry_run: bool = False, exclude_progress: bool = False) -> None:
         """Initialize the FfmpegProgress class.
 
         Args:
@@ -32,6 +35,7 @@ class FfmpegProgress:
         self.cmd = cmd
         self.stderr: Union[str, None] = None
         self.dry_run = dry_run
+        self.exclude_progress = exclude_progress
         self.process: Any = None
         self.stderr_callback: Union[Callable[[str], None], None] = None
         self.base_popen_kwargs = {
@@ -73,7 +77,12 @@ class FfmpegProgress:
             self.stderr_callback(stderr_line)
 
         stderr.append(stderr_line.strip())
-        self.stderr = "\n".join(stderr)
+        self.stderr = "\n".join(
+            filter(
+                lambda line: not (self.exclude_progress and self.PROGRESS_REGEX.match(line)),
+                stderr
+            )
+        )
 
         progress: Union[float, None] = None
         # assign the total duration if it was found. this can happen multiple times for multiple inputs,
