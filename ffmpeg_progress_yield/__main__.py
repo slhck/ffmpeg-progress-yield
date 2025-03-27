@@ -26,6 +26,18 @@ def main() -> None:
         help="Print progress only and do not print stderr at exit.",
     )
     parser.add_argument(
+        "-x",
+        "--exclude-progress",
+        action="store_true",
+        help="Exclude progress lines from ffmpeg log.",
+    )
+    parser.add_argument(
+        "-l",
+        "--log-file",
+        type=str,
+        help="Send ffmpeg log output to specified file.",
+    )
+    parser.add_argument(
         "ffmpeg_command",
         type=str,
         nargs=argparse.REMAINDER,
@@ -33,7 +45,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    ff = FfmpegProgress(args.ffmpeg_command, dry_run=args.dry_run)
+    ff = FfmpegProgress(args.ffmpeg_command, dry_run=args.dry_run, exclude_progress=args.exclude_progress)
 
     try:
         from tqdm import tqdm
@@ -55,8 +67,15 @@ def main() -> None:
 
     if platform.system() == "Windows":
         print("\x1b[K", end="")
+
     if not args.progress_only:
-        print(ff.stderr)
+        log_file = args.log_file
+        if log_file in ("1", "2"):
+            log_file = int(log_file)
+        elif log_file is None:
+            log_file = 2
+        with open(log_file, "w") as f:
+            print(ff.stderr, file=f)
 
 
 if __name__ == "__main__":
