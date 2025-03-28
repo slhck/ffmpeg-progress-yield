@@ -108,6 +108,14 @@ If you want to manually override the duration to, say, 12.5 seconds (e.g. becaus
 ffmpeg-progress-yield --duration 12.5 ffmpeg -f lavfi -i testsrc -t 12.5 output.mp4
 ```
 
+You can also redirect the output to a log file:
+
+```bash
+ffmpeg-progress-yield --exclude-progress --log-file log.txt ffmpeg -i input.mp4 output.mp4
+```
+
+This will exclude the progress bar from the output, and redirect it to a log file.
+
 ## Caveats
 
 Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
