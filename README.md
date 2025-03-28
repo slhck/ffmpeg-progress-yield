@@ -118,7 +118,7 @@ This will exclude the progress bar from the output, and redirect it to a log fil
 
 ## Caveats
 
-Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log.
+Currently, we do not differentiate between `stderr` and `stdout`. This means progress will be mixed with the ffmpeg log, unless you use `--exclude-progress` (or `exclude_progress` in the Python API).
 
 You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progress) for a similar project with a different feature set.
 
