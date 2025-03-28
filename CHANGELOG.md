@@ -1,6 +1,17 @@
 # Changelog
 
 
+## v0.12.0 (2025-03-28)
+
+* Docs: add @scufre as a contributor.
+
+* Update readme.
+
+* Add support to send ffmpeg log (not progress) to a different file.
+
+* Disallow blank issues.
+
+
 ## v0.11.3 (2024-12-11)
 
 * Fix: Clear and print progress when tqdm is not available.
