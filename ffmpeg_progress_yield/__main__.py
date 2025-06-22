@@ -45,25 +45,29 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    ff = FfmpegProgress(args.ffmpeg_command, dry_run=args.dry_run, exclude_progress=args.exclude_progress)
+    with FfmpegProgress(args.ffmpeg_command, dry_run=args.dry_run, exclude_progress=args.exclude_progress) as ff:
+        try:
+            # Check if we should disable tqdm for testing, or in other cases
+            import os
+            if os.getenv("FFMPEG_PROGRESS_NO_TQDM"):
+                raise ImportError("Tqdm disabled")
 
-    try:
-        from tqdm import tqdm
+            from tqdm import tqdm
 
-        with tqdm(
-            total=100,
-            position=1,
-            desc="Progress",
-            bar_format="{desc}: {percentage:3.2f}% |{bar}{r_bar}",
-        ) as pbar:
-            for progress in ff.run_command_with_progress(
-                duration_override=args.duration
-            ):
-                pbar.update(progress - pbar.n)
-    except ImportError:
-        for progress in ff.run_command_with_progress():
-            print(f"\x1b[K{progress}/100", end="\r")
-        print()
+            with tqdm(
+                total=100,
+                position=1,
+                desc="Progress",
+                bar_format="{desc}: {percentage:3.2f}% |{bar}{r_bar}",
+            ) as pbar:
+                for progress in ff.run_command_with_progress(
+                    duration_override=args.duration
+                ):
+                    pbar.update(progress - pbar.n)
+        except ImportError:
+            for progress in ff.run_command_with_progress():
+                print(f"\x1b[K{progress}/100", end="\r")
+            print()
 
     if platform.system() == "Windows":
         print("\x1b[K", end="")

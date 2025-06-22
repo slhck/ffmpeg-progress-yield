@@ -2,6 +2,7 @@
 import os
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -10,6 +11,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
 from ffmpeg_progress_yield import FfmpegProgress  # noqa: E402
 
 _TEST_ASSET = os.path.join(os.path.dirname(__file__), "test.mp4")
+
+
+def count_ffmpeg_processes():
+    """Count the number of running ffmpeg processes."""
+    try:
+        result = subprocess.run(['pgrep', '-c', 'ffmpeg'], capture_output=True, text=True)
+        return int(result.stdout.strip()) if result.returncode == 0 else 0
+    except (subprocess.CalledProcessError, ValueError):
+        return 0
 
 
 class TestLibrary:
@@ -141,6 +151,58 @@ class TestLibrary:
                 break
         assert "out_time=" in ff.stderr
 
+    def test_context_manager(self):
+        """Test that context manager works and cleans up processes."""
+        initial_count = count_ffmpeg_processes()
+
+        with FfmpegProgress(TestLibrary.cmd) as ff:
+            for progress in ff.run_command_with_progress():
+                print(f"{progress}/100")
+                if progress > 50:  # Exit early to test cleanup
+                    break
+
+        # Give cleanup a moment
+        time.sleep(0.5)
+        final_count = count_ffmpeg_processes()
+        assert final_count <= initial_count
+
+    def test_context_manager_with_exception(self):
+        """Test that context manager cleans up even when exceptions occur."""
+        initial_count = count_ffmpeg_processes()
+
+        try:
+            with FfmpegProgress(TestLibrary.cmd) as ff:
+                for progress in ff.run_command_with_progress():
+                    print(f"{progress}/100")
+                    if progress > 0:
+                        raise ValueError("Test exception")
+        except ValueError:
+            pass  # Expected exception
+
+        # Give cleanup a moment
+        time.sleep(0.5)
+        final_count = count_ffmpeg_processes()
+        assert final_count <= initial_count
+
+    def test_automatic_cleanup_on_exception(self):
+        """Test that processes are cleaned up automatically when exceptions occur."""
+        initial_count = count_ffmpeg_processes()
+
+        try:
+            ff = FfmpegProgress(TestLibrary.cmd)
+            for progress in ff.run_command_with_progress():
+                print(f"{progress}/100")
+                if progress > 0:
+                    raise ValueError("Test exception")
+        except ValueError:
+            pass  # Expected exception
+
+        # Give cleanup a moment
+        time.sleep(0.5)
+        final_count = count_ffmpeg_processes()
+        assert final_count <= initial_count
+
+
 class TestProgress:
     def test_progress(self):
         cmd = [
@@ -158,9 +220,14 @@ class TestProgress:
             "null",
             "/dev/null",
         ]
-        ret = subprocess.run(cmd, capture_output=True, universal_newlines=True)
-        assert "0/100" in ret.stderr
-        assert "100.0/100" in ret.stderr or "100/100" in ret.stderr
+        # Force fallback format for reliable testing
+        env = os.environ.copy()
+        env["FFMPEG_PROGRESS_NO_TQDM"] = "1"
+        ret = subprocess.run(cmd, capture_output=True, universal_newlines=True, env=env)
+
+        # Check for fallback format (X/100) in stdout
+        assert "0/100" in ret.stdout
+        assert "100.0/100" in ret.stdout or "100/100" in ret.stdout
 
 
 class TestAsyncLibrary:
@@ -203,3 +270,57 @@ class TestAsyncLibrary:
                 break
         assert proc is not None
         assert proc.returncode == 0
+
+    @pytest.mark.asyncio
+    async def test_async_context_manager(self):
+        """Test that async context manager works and cleans up processes."""
+        initial_count = count_ffmpeg_processes()
+
+        async with FfmpegProgress(TestAsyncLibrary.cmd) as ff:
+            async for progress in ff.async_run_command_with_progress():
+                print(f"{progress}/100")
+                if progress > 50:  # Exit early to test cleanup
+                    break
+
+        # Give cleanup a moment
+        time.sleep(0.5)
+        final_count = count_ffmpeg_processes()
+        assert final_count <= initial_count
+
+    @pytest.mark.asyncio
+    async def test_async_context_manager_with_exception(self):
+        """Test that async context manager cleans up even when exceptions occur."""
+        initial_count = count_ffmpeg_processes()
+
+        try:
+            async with FfmpegProgress(TestAsyncLibrary.cmd) as ff:
+                async for progress in ff.async_run_command_with_progress():
+                    print(f"{progress}/100")
+                    if progress > 0:
+                        raise ValueError("Test exception")
+        except ValueError:
+            pass  # Expected exception
+
+        # Give cleanup a moment
+        time.sleep(0.5)
+        final_count = count_ffmpeg_processes()
+        assert final_count <= initial_count
+
+    @pytest.mark.asyncio
+    async def test_async_automatic_cleanup_on_exception(self):
+        """Test that async processes are cleaned up automatically when exceptions occur."""
+        initial_count = count_ffmpeg_processes()
+
+        try:
+            ff = FfmpegProgress(TestAsyncLibrary.cmd)
+            async for progress in ff.async_run_command_with_progress():
+                print(f"{progress}/100")
+                if progress > 0:
+                    raise ValueError("Test exception")
+        except ValueError:
+            pass  # Expected exception
+
+        # Give cleanup a moment
+        time.sleep(0.5)
+        final_count = count_ffmpeg_processes()
+        assert final_count <= initial_count

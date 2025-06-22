@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import subprocess
+import weakref
 from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Union
 
 
@@ -54,6 +55,55 @@ class FfmpegProgress:
         self.total_dur: Union[None, int] = None
         if FfmpegProgress._uses_error_loglevel(self.cmd):
             self.total_dur = FfmpegProgress._probe_duration(self.cmd)
+
+        # Set up cleanup on garbage collection as a fallback
+        self._cleanup_ref = weakref.finalize(self, self._cleanup_process, None)
+
+    @staticmethod
+    def _cleanup_process(process: Any) -> None:
+        """Clean up a process if it's still running."""
+        if process is not None and hasattr(process, 'poll'):
+            try:
+                if process.poll() is None:  # Process is still running
+                    process.kill()
+                    if hasattr(process, 'wait'):
+                        try:
+                            process.wait(timeout=1.0)
+                        except subprocess.TimeoutExpired:
+                            pass  # Process didn't terminate gracefully, but we killed it
+            except Exception:
+                pass  # Ignore any errors during cleanup
+
+    def __del__(self) -> None:
+        """Fallback cleanup when object is garbage collected."""
+        if hasattr(self, 'process') and self.process is not None:
+            self._cleanup_process(self.process)
+
+    def __enter__(self) -> 'FfmpegProgress':
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Context manager exit - ensures process cleanup."""
+        if self.process is not None:
+            try:
+                if hasattr(self.process, 'poll') and self.process.poll() is None:
+                    self.quit()
+            except Exception:
+                pass  # Ignore errors during cleanup
+
+    async def __aenter__(self) -> 'FfmpegProgress':
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Async context manager exit - ensures process cleanup."""
+        if self.process is not None:
+            try:
+                if hasattr(self.process, 'returncode') and self.process.returncode is None:
+                    await self.async_quit()
+            except Exception:
+                pass  # Ignore errors during cleanup
 
     def _process_output(
         self,
@@ -245,29 +295,50 @@ class FfmpegProgress:
 
         self.process = subprocess.Popen(self.cmd_with_progress, **base_popen_kwargs)  # type: ignore
 
-        yield 0
+        # Update the cleanup finalizer with the actual process
+        self._cleanup_ref.detach()
+        self._cleanup_ref = weakref.finalize(self, self._cleanup_process, self.process)
 
-        stderr: List[str] = []
-        while True:
-            if self.process.stdout is None:
-                continue
+        try:
+            yield 0
 
-            stderr_line: str = (
-                self.process.stdout.readline().decode("utf-8", errors="replace").strip()
-            )
+            stderr: List[str] = []
+            while True:
+                if self.process.stdout is None:
+                    continue
 
-            if stderr_line == "" and self.process.poll() is not None:
-                break
+                stderr_line: str = (
+                    self.process.stdout.readline().decode("utf-8", errors="replace").strip()
+                )
 
-            progress = self._process_output(stderr_line, stderr, duration_override)
-            if progress is not None:
-                yield progress
+                if stderr_line == "" and self.process.poll() is not None:
+                    break
 
-        if self.process.returncode != 0:
-            raise RuntimeError(f"Error running command {self.cmd}: {self.stderr}")
+                progress = self._process_output(stderr_line, stderr, duration_override)
+                if progress is not None:
+                    yield progress
 
-        yield 100
-        self.process = None
+            if self.process.returncode != 0:
+                raise RuntimeError(f"Error running command {self.cmd}: {self.stderr}")
+
+            yield 100
+        finally:
+            # Ensure process cleanup even if an exception occurs
+            if self.process is not None:
+                try:
+                    if self.process.poll() is None:  # Process is still running
+                        self.process.kill()
+                        try:
+                            self.process.wait(timeout=1.0)
+                        except subprocess.TimeoutExpired:
+                            pass  # Process didn't terminate gracefully, but we killed it
+                except Exception:
+                    pass  # Ignore any errors during cleanup
+                finally:
+                    self.process = None
+                    # Detach the finalizer since we've cleaned up manually
+                    if hasattr(self, '_cleanup_ref'):
+                        self._cleanup_ref.detach()
 
     async def async_run_command_with_progress(
         self, popen_kwargs=None, duration_override: Union[float, None] = None
@@ -307,30 +378,51 @@ class FfmpegProgress:
             **base_popen_kwargs,  # type: ignore
         )
 
-        yield 0
+        # Update the cleanup finalizer with the actual process
+        self._cleanup_ref.detach()
+        self._cleanup_ref = weakref.finalize(self, self._cleanup_process, self.process)
 
-        stderr: List[str] = []
-        while True:
-            if self.process.stdout is None:
-                continue
+        try:
+            yield 0
 
-            stderr_line: Union[bytes, None] = await self.process.stdout.readline()
-            if not stderr_line:
-                # Process has finished, check the return code
-                await self.process.wait()
-                if self.process.returncode != 0:
-                    raise RuntimeError(
-                        f"Error running command {self.cmd}: {self.stderr}"
-                    )
-                break
-            stderr_line_str = stderr_line.decode("utf-8", errors="replace").strip()
+            stderr: List[str] = []
+            while True:
+                if self.process.stdout is None:
+                    continue
 
-            progress = self._process_output(stderr_line_str, stderr, duration_override)
-            if progress is not None:
-                yield progress
+                stderr_line: Union[bytes, None] = await self.process.stdout.readline()
+                if not stderr_line:
+                    # Process has finished, check the return code
+                    await self.process.wait()
+                    if self.process.returncode != 0:
+                        raise RuntimeError(
+                            f"Error running command {self.cmd}: {self.stderr}"
+                        )
+                    break
+                stderr_line_str = stderr_line.decode("utf-8", errors="replace").strip()
 
-        yield 100
-        self.process = None
+                progress = self._process_output(stderr_line_str, stderr, duration_override)
+                if progress is not None:
+                    yield progress
+
+            yield 100
+        finally:
+            # Ensure process cleanup even if an exception occurs
+            if self.process is not None:
+                try:
+                    if self.process.returncode is None:  # Process is still running
+                        self.process.kill()
+                        try:
+                            await self.process.wait()
+                        except Exception:
+                            pass  # Ignore any errors during cleanup
+                except Exception:
+                    pass  # Ignore any errors during cleanup
+                finally:
+                    self.process = None
+                    # Detach the finalizer since we've cleaned up manually
+                    if hasattr(self, '_cleanup_ref'):
+                        self._cleanup_ref.detach()
 
     def quit_gracefully(self) -> None:
         """

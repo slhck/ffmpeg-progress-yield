@@ -37,7 +37,7 @@ Or download this repository, then run `pip install .`.
 
 ### As a library
 
-In your Python project, import the helper class and run `run_command_with_progress`.
+In your Python project, import the helper class, instantiate a context manager, and run `run_command_with_progress`.
 
 For more information see the [API documentation](https://htmlpreview.github.io/?https://github.com/slhck/ffmpeg-progress-yield/blob/master/docs/ffmpeg_progress_yield.html).
 
@@ -50,9 +50,9 @@ cmd = [
     "ffmpeg", "-i", "test/test.mp4", "-c:v", "libx264", "-vf", "scale=1920x1080", "-preset", "fast", "-f", "null", "/dev/null",
 ]
 
-ff = FfmpegProgress(cmd)
-for progress in ff.run_command_with_progress():
-    print(f"{progress}/100")
+with FfmpegProgress(cmd) as ff:
+    for progress in ff.run_command_with_progress():
+        print(f"{progress}/100")
 ```
 
 The command will yield the current progress in percent as a float number.
@@ -69,28 +69,36 @@ cmd = [
     "ffmpeg", "-i", "test/test.mp4", "-c:v", "libx264", "-vf", "scale=1920x1080", "-preset", "fast", "-f", "null", "/dev/null",
 ]
 
-ff = FfmpegProgress(cmd)
-with tqdm(total=100, position=1, desc="Test") as pbar:
-    for progress in ff.run_command_with_progress():
-        pbar.update(progress - pbar.n)
+with FfmpegProgress(cmd) as ff:
+    with tqdm(total=100, position=1, desc="Test") as pbar:
+        for progress in ff.run_command_with_progress():
+            pbar.update(progress - pbar.n)
 
-# get the output
-print(ff.stderr)
+    # get the output
+    print(ff.stderr)
 ```
 
-You can also quit the command by calling `.quit()`:
+You can also quit the command early on by calling `.quit()`:
 
 ```python
-ff = FfmpegProgress(cmd)
-for progress in ff.run_command_with_progress():
-    if progress > 50:
-        ff.quit()
-        break
+with FfmpegProgress(cmd) as ff:
+    for progress in ff.run_command_with_progress():
+        if progress > 50:
+            ff.quit()
+            break
 ```
 
-This will send a hard quit to the ffmpeg process, and may not wait for it to finish. To quit gracefully, use `.quit_gracefully()` instead, which sends 'q' to the ffmpeg process, and waits for it to finish.
+This will send a hard quit to the ffmpeg process, and may not wait for it to finish. Your encoded file may have truncated data. To quit gracefully, use `.quit_gracefully()` instead, which sends 'q' to the ffmpeg process, and waits for it to finish (e.g., wait for an encoder to flush its buffers).
 
 This is probably most useful in asynchronous environments, where you can run the command in a separate thread, and quit it from the main thread (e.g. using a [Condition Variable](https://docs.python.org/3/library/threading.html#threading.Condition)).
+
+#### Process Cleanup and Context Manager Support
+
+The library automatically handles process cleanup to prevent lingering ffmpeg processes. It provides multiple layers of safety:
+
+1. **Automatic cleanup**: Processes are automatically cleaned up even if exceptions occur during iteration
+2. **Context manager support**: Use `with` statements for guaranteed cleanup
+3. **Finalizer fallback**: Processes are cleaned up during garbage collection as a last resort
 
 ### On the command line
 
@@ -102,11 +110,37 @@ ffmpeg-progress-yield ffmpeg -i input.mp4 output.mp4
 
 It will show a progress bar, and once the command is done, show the ffmpeg stderr output.
 
+Full usage notes:
+
+```
+usage: ffmpeg-progress-yield [-h] [-d DURATION] [-n] [-p] [-x] [-l LOG_FILE] ...
+
+ffmpeg-progress-yield v0.12.0
+
+positional arguments:
+  ffmpeg_command        Any ffmpeg command. Do not quote this argument.
+
+options:
+  -h, --help            show this help message and exit
+  -d, --duration DURATION
+                        Duration of the video in seconds (override). (default: None)
+  -n, --dry-run         Print ffmpeg command and exit. (default: False)
+  -p, --progress-only   Print progress only and do not print stderr at exit. (default: False)
+  -x, --exclude-progress
+                        Exclude progress lines from ffmpeg log. (default: False)
+  -l, --log-file LOG_FILE
+                        Send ffmpeg log output to specified file. (default: None)
+```
+
+#### Duration override
+
 If you want to manually override the duration to, say, 12.5 seconds (e.g. because your input doesn't have an implicit one):
 
 ```bash
 ffmpeg-progress-yield --duration 12.5 ffmpeg -f lavfi -i testsrc -t 12.5 output.mp4
 ```
+
+#### Exclude progress from the CLI
 
 You can also redirect the output to a log file:
 
@@ -158,7 +192,7 @@ You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progr
 
 The MIT License (MIT)
 
-Copyright (c) 2021-2023 Werner Robitza
+Copyright (c) 2021-2025 Werner Robitza
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
