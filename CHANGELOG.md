@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v1.0.1 (2025-06-22)
+
+* Fix async error.
+
+* Fix classifier.
+
+
 ## v1.0.0 (2025-06-22)
 
 * Add context manager and clean up properly.
