@@ -406,23 +406,35 @@ class FfmpegProgress:
                     yield progress
 
             yield 100
+        except GeneratorExit:
+            # Handle case where async generator is closed prematurely
+            await self._async_cleanup_process()
+            raise
+        except Exception:
+            # Handle any other exception
+            await self._async_cleanup_process()
+            raise
         finally:
-            # Ensure process cleanup even if an exception occurs
-            if self.process is not None:
-                try:
-                    if self.process.returncode is None:  # Process is still running
-                        self.process.kill()
-                        try:
-                            await self.process.wait()
-                        except Exception:
-                            pass  # Ignore any errors during cleanup
-                except Exception:
-                    pass  # Ignore any errors during cleanup
-                finally:
-                    self.process = None
-                    # Detach the finalizer since we've cleaned up manually
-                    if hasattr(self, '_cleanup_ref'):
-                        self._cleanup_ref.detach()
+            # Normal cleanup
+            await self._async_cleanup_process()
+
+    async def _async_cleanup_process(self) -> None:
+        """Clean up the async process."""
+        if self.process is not None:
+            try:
+                if self.process.returncode is None:  # Process is still running
+                    self.process.kill()
+                    try:
+                        await self.process.wait()
+                    except Exception:
+                        pass  # Ignore any errors during cleanup
+            except Exception:
+                pass  # Ignore any errors during cleanup
+            finally:
+                self.process = None
+                # Detach the finalizer since we've cleaned up manually
+                if hasattr(self, '_cleanup_ref'):
+                    self._cleanup_ref.detach()
 
     def quit_gracefully(self) -> None:
         """
