@@ -1,6 +1,17 @@
 # Changelog
 
 
+## v1.0.0 (2025-06-22)
+
+* Add context manager and clean up properly.
+
+* Changed license specifier.
+
+* Removed wheel settings from setup.cfg.
+
+* Update readme.
+
+
 ## v0.12.0 (2025-03-28)
 
 * Docs: add @scufre as a contributor.
