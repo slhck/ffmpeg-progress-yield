@@ -1,8 +1,8 @@
 #!/usr/bin/env pytest
+import asyncio
 import os
 import subprocess
 import sys
-import time
 
 import pytest
 
@@ -161,8 +161,6 @@ class TestLibrary:
                 if progress > 50:  # Exit early to test cleanup
                     break
 
-        # Give cleanup a moment
-        time.sleep(0.5)
         final_count = count_ffmpeg_processes()
         assert final_count <= initial_count
 
@@ -179,8 +177,6 @@ class TestLibrary:
         except ValueError:
             pass  # Expected exception
 
-        # Give cleanup a moment
-        time.sleep(0.5)
         final_count = count_ffmpeg_processes()
         assert final_count <= initial_count
 
@@ -197,8 +193,6 @@ class TestLibrary:
         except ValueError:
             pass  # Expected exception
 
-        # Give cleanup a moment
-        time.sleep(0.5)
         final_count = count_ffmpeg_processes()
         assert final_count <= initial_count
 
@@ -283,7 +277,7 @@ class TestAsyncLibrary:
                     break
 
         # Give cleanup a moment
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         final_count = count_ffmpeg_processes()
         assert final_count <= initial_count
 
@@ -302,7 +296,7 @@ class TestAsyncLibrary:
             pass  # Expected exception
 
         # Give cleanup a moment
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         final_count = count_ffmpeg_processes()
         assert final_count <= initial_count
 
@@ -321,6 +315,6 @@ class TestAsyncLibrary:
             pass  # Expected exception
 
         # Give cleanup a moment
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         final_count = count_ffmpeg_processes()
         assert final_count <= initial_count
