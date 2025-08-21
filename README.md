@@ -1,6 +1,6 @@
 # ffmpeg-progress-yield
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![PyPI version](https://img.shields.io/pypi/v/ffmpeg-progress-yield.svg)](https://pypi.org/project/ffmpeg-progress-yield) [![Python package](https://github.com/slhck/ffmpeg-progress-yield/actions/workflows/python-package.yml/badge.svg)](https://github.com/slhck/ffmpeg-progress-yield/actions/workflows/python-package.yml)
@@ -170,6 +170,7 @@ You can also check out [`ffmpeg-progress`](https://github.com/Tatsh/ffmpeg-progr
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ammgws"><img src="https://avatars.githubusercontent.com/u/20397027?v=4?s=100" width="100px;" alt="Jason Nader"/><br /><sub><b>Jason Nader</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/issues?q=author%3Aammgws" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/LaunchLee"><img src="https://avatars.githubusercontent.com/u/80872691?v=4?s=100" width="100px;" alt="Launch Lee"/><br /><sub><b>Launch Lee</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/commits?author=LaunchLee" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/scufre"><img src="https://avatars.githubusercontent.com/u/21089866?v=4?s=100" width="100px;" alt="scufre"/><br /><sub><b>scufre</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/commits?author=scufre" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AlexanderS"><img src="https://avatars.githubusercontent.com/u/149450?v=4?s=100" width="100px;" alt="Alexander Sulfrian"/><br /><sub><b>Alexander Sulfrian</b></sub></a><br /><a href="https://github.com/slhck/ffmpeg-progress-yield/commits?author=AlexanderS" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
