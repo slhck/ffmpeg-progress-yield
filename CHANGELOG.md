@@ -1,6 +1,15 @@
 # Changelog
 
 
+## v1.0.2 (2025-08-21)
+
+* Tests: Fix async cleanup after exception test.
+
+  This replaces time.sleep with asyncio.sleep. time.sleep blocks the entire
+  execution and prevents any cleanup from occurring, whereas asyncio.sleep pauses
+  the current coroutine, allowing the event loop to schedule the cleanup.
+
+
 ## v1.0.1 (2025-06-22)
 
 * Fix async error.
