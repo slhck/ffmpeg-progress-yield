@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "ffmpeg-progress-yield"
-version = "1.0.2"
+version = "1.0.3"
 description = "Run an ffmpeg command with progress"
 readme = "README.md"
 authors = [

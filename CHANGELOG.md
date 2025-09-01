@@ -1,6 +1,15 @@
 # Changelog
 
 
+## v1.0.3 (2025-09-01)
+
+* Bump version to 1.0.3.
+
+* Migrate to uv and modern package structure.
+
+* Docs: add @AlexanderS as a contributor.
+
+
 ## v1.0.2 (2025-08-21)
 
 * Tests: Fix async cleanup after exception test.
