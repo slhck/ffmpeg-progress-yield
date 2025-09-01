@@ -45,10 +45,15 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    with FfmpegProgress(args.ffmpeg_command, dry_run=args.dry_run, exclude_progress=args.exclude_progress) as ff:
+    with FfmpegProgress(
+        args.ffmpeg_command,
+        dry_run=args.dry_run,
+        exclude_progress=args.exclude_progress,
+    ) as ff:
         try:
             # Check if we should disable tqdm for testing, or in other cases
             import os
+
             if os.getenv("FFMPEG_PROGRESS_NO_TQDM"):
                 raise ImportError("Tqdm disabled")
 

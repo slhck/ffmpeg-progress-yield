@@ -16,7 +16,9 @@ _TEST_ASSET = os.path.join(os.path.dirname(__file__), "test.mp4")
 def count_ffmpeg_processes():
     """Count the number of running ffmpeg processes."""
     try:
-        result = subprocess.run(['pgrep', '-c', 'ffmpeg'], capture_output=True, text=True)
+        result = subprocess.run(
+            ["pgrep", "-c", "ffmpeg"], capture_output=True, text=True
+        )
         return int(result.stdout.strip()) if result.returncode == 0 else 0
     except (subprocess.CalledProcessError, ValueError):
         return 0

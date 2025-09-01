@@ -24,14 +24,24 @@ Contents:
 
 ## Requirements
 
--   Python 3.9 or higher
--   ffmpeg v3.1 or above from <http://ffmpeg.org/> installed in your \$PATH
+- Python 3.9 or higher
+- ffmpeg v3.1 or above from <http://ffmpeg.org/> installed in your \$PATH
 
 ## Installation
 
-    pip3 install ffmpeg-progress-yield
+If you want to use the CLI only, via [uv](https://docs.astral.sh/uv/getting-started/installation/):
 
-Or download this repository, then run `pip install .`.
+```bash
+uvx ffmpeg-progress-yield
+```
+
+Or install via [pipx](https://pipx.pypa.io/latest/installation/).
+
+To install the library:
+
+```bash
+pip3 install --user ffmpeg-progress-yield
+```
 
 ## Usage
 

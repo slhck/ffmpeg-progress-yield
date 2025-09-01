@@ -22,11 +22,11 @@ class FfmpegProgress:
     TIME_REGEX = re.compile(
         r"out_time=(?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})\.(?P<ms>\d{2})"
     )
-    PROGRESS_REGEX = re.compile(
-        r"[a-z0-9_]+=.+"
-    )
+    PROGRESS_REGEX = re.compile(r"[a-z0-9_]+=.+")
 
-    def __init__(self, cmd: List[str], dry_run: bool = False, exclude_progress: bool = False) -> None:
+    def __init__(
+        self, cmd: List[str], dry_run: bool = False, exclude_progress: bool = False
+    ) -> None:
         """Initialize the FfmpegProgress class.
 
         Args:
@@ -62,11 +62,11 @@ class FfmpegProgress:
     @staticmethod
     def _cleanup_process(process: Any) -> None:
         """Clean up a process if it's still running."""
-        if process is not None and hasattr(process, 'poll'):
+        if process is not None and hasattr(process, "poll"):
             try:
                 if process.poll() is None:  # Process is still running
                     process.kill()
-                    if hasattr(process, 'wait'):
+                    if hasattr(process, "wait"):
                         try:
                             process.wait(timeout=1.0)
                         except subprocess.TimeoutExpired:
@@ -76,10 +76,10 @@ class FfmpegProgress:
 
     def __del__(self) -> None:
         """Fallback cleanup when object is garbage collected."""
-        if hasattr(self, 'process') and self.process is not None:
+        if hasattr(self, "process") and self.process is not None:
             self._cleanup_process(self.process)
 
-    def __enter__(self) -> 'FfmpegProgress':
+    def __enter__(self) -> "FfmpegProgress":
         """Context manager entry."""
         return self
 
@@ -87,12 +87,12 @@ class FfmpegProgress:
         """Context manager exit - ensures process cleanup."""
         if self.process is not None:
             try:
-                if hasattr(self.process, 'poll') and self.process.poll() is None:
+                if hasattr(self.process, "poll") and self.process.poll() is None:
                     self.quit()
             except Exception:
                 pass  # Ignore errors during cleanup
 
-    async def __aenter__(self) -> 'FfmpegProgress':
+    async def __aenter__(self) -> "FfmpegProgress":
         """Async context manager entry."""
         return self
 
@@ -100,7 +100,10 @@ class FfmpegProgress:
         """Async context manager exit - ensures process cleanup."""
         if self.process is not None:
             try:
-                if hasattr(self.process, 'returncode') and self.process.returncode is None:
+                if (
+                    hasattr(self.process, "returncode")
+                    and self.process.returncode is None
+                ):
                     await self.async_quit()
             except Exception:
                 pass  # Ignore errors during cleanup
@@ -129,8 +132,10 @@ class FfmpegProgress:
         stderr.append(stderr_line.strip())
         self.stderr = "\n".join(
             filter(
-                lambda line: not (self.exclude_progress and self.PROGRESS_REGEX.match(line)),
-                stderr
+                lambda line: not (
+                    self.exclude_progress and self.PROGRESS_REGEX.match(line)
+                ),
+                stderr,
             )
         )
 
@@ -308,7 +313,9 @@ class FfmpegProgress:
                     continue
 
                 stderr_line: str = (
-                    self.process.stdout.readline().decode("utf-8", errors="replace").strip()
+                    self.process.stdout.readline()
+                    .decode("utf-8", errors="replace")
+                    .strip()
                 )
 
                 if stderr_line == "" and self.process.poll() is not None:
@@ -337,7 +344,7 @@ class FfmpegProgress:
                 finally:
                     self.process = None
                     # Detach the finalizer since we've cleaned up manually
-                    if hasattr(self, '_cleanup_ref'):
+                    if hasattr(self, "_cleanup_ref"):
                         self._cleanup_ref.detach()
 
     async def async_run_command_with_progress(
@@ -401,7 +408,9 @@ class FfmpegProgress:
                     break
                 stderr_line_str = stderr_line.decode("utf-8", errors="replace").strip()
 
-                progress = self._process_output(stderr_line_str, stderr, duration_override)
+                progress = self._process_output(
+                    stderr_line_str, stderr, duration_override
+                )
                 if progress is not None:
                     yield progress
 
@@ -433,7 +442,7 @@ class FfmpegProgress:
             finally:
                 self.process = None
                 # Detach the finalizer since we've cleaned up manually
-                if hasattr(self, '_cleanup_ref'):
+                if hasattr(self, "_cleanup_ref"):
                     self._cleanup_ref.detach()
 
     def quit_gracefully(self) -> None:
