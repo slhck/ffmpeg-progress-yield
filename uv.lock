@@ -59,7 +59,7 @@ dev = [
     { name = "pdoc", specifier = ">=15.0.4" },
     { name = "pytest", specifier = ">=8.3.2" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
-    { name = "ruff" },
+    { name = "ruff", specifier = ">=0.12.11" },
     { name = "types-tqdm" },
 ]
 

@@ -41,7 +41,7 @@ ffmpeg-progress-yield = "ffmpeg_progress_yield.__main__:main"
 dev = [
     "pytest>=8.3.2",
     "pytest-asyncio>=0.24.0",
-    "ruff",
+    "ruff>=0.12.11",
     "mypy",
     "types-tqdm",
     "pdoc>=15.0.4",
@@ -55,3 +55,4 @@ exclude = ["build"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
