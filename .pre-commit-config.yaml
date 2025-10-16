@@ -3,8 +3,9 @@ repos:
     rev: v0.12.11
     hooks:
       - id: ruff
-        args: [ --fix ]
-      - id: ruff-format  - repo: https://github.com/commitizen-tools/commitizen
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.1.0
     hooks:
       - id: commitizen
