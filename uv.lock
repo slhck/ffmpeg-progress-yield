@@ -34,7 +34,7 @@ wheels = [
 
 [[package]]
 name = "ffmpeg-progress-yield"
-version = "1.0.3"
+version = "1.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "tqdm" },
