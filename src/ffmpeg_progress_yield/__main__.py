@@ -61,7 +61,6 @@ def main() -> None:
 
             with tqdm(
                 total=100,
-                position=1,
                 desc="Progress",
                 bar_format="{desc}: {percentage:3.2f}% |{bar}{r_bar}",
             ) as pbar:
