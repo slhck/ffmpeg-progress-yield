@@ -1,3 +1,13 @@
+## [1.0.5] - 2025-11-09
+
+### 💼 Other
+
+- Loosen uv_build version constraints, fixes #32
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove gitchangelog files
+- Bump version to 1.0.5
 ## [1.0.4] - 2025-10-17
 
 ### 🐛 Bug Fixes
