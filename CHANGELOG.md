@@ -1,3 +1,12 @@
+## [1.1.1] - 2026-01-13
+
+### 🐛 Bug Fixes
+
+- Handle dry run with missing tool path
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 1.1.1
 ## [1.1.0] - 2026-01-13
 
 ### 🚀 Features
