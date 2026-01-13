@@ -60,7 +60,8 @@ class FfmpegProgress:
 
         self.current_input_idx: int = 0
         self.total_dur: Union[None, int] = None
-        if FfmpegProgress._uses_error_loglevel(self.cmd):
+        # Skip probing duration in dry-run mode to avoid running ffprobe
+        if not self.dry_run and FfmpegProgress._uses_error_loglevel(self.cmd):
             self.total_dur = self._probe_duration(self.cmd)
 
         # Set up cleanup on garbage collection as a fallback
