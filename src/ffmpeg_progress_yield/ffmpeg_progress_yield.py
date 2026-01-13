@@ -25,18 +25,25 @@ class FfmpegProgress:
     PROGRESS_REGEX = re.compile(r"[a-z0-9_]+=.+")
 
     def __init__(
-        self, cmd: List[str], dry_run: bool = False, exclude_progress: bool = False
+        self,
+        cmd: List[str],
+        dry_run: bool = False,
+        exclude_progress: bool = False,
+        ffprobe_path: str = "ffprobe",
     ) -> None:
         """Initialize the FfmpegProgress class.
 
         Args:
             cmd (List[str]): A list of command line elements, e.g. ["ffmpeg", "-i", ...]
             dry_run (bool, optional): Only show what would be done. Defaults to False.
+            exclude_progress (bool, optional): Exclude progress lines from output. Defaults to False.
+            ffprobe_path (str, optional): Path to ffprobe executable. Defaults to "ffprobe".
         """
         self.cmd = cmd
         self.stderr: Union[str, None] = None
         self.dry_run = dry_run
         self.exclude_progress = exclude_progress
+        self.ffprobe_path = ffprobe_path
         self.process: Any = None
         self.stderr_callback: Union[Callable[[str], None], None] = None
         self.base_popen_kwargs = {
@@ -54,7 +61,7 @@ class FfmpegProgress:
         self.current_input_idx: int = 0
         self.total_dur: Union[None, int] = None
         if FfmpegProgress._uses_error_loglevel(self.cmd):
-            self.total_dur = FfmpegProgress._probe_duration(self.cmd)
+            self.total_dur = self._probe_duration(self.cmd)
 
         # Set up cleanup on garbage collection as a fallback
         self._cleanup_ref = weakref.finalize(self, self._cleanup_process, None)
@@ -173,8 +180,7 @@ class FfmpegProgress:
 
         return progress
 
-    @staticmethod
-    def _probe_duration(cmd: List[str]) -> Optional[int]:
+    def _probe_duration(self, cmd: List[str]) -> Optional[int]:
         """
         Get the duration via ffprobe from input media file
         in case ffmpeg was run with loglevel=error.
@@ -203,7 +209,7 @@ class FfmpegProgress:
             try:
                 output = subprocess.check_output(
                     [
-                        "ffprobe",
+                        self.ffprobe_path,
                         "-loglevel",
                         "error",
                         "-hide_banner",

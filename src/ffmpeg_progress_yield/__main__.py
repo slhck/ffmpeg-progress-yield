@@ -38,6 +38,12 @@ def main() -> None:
         help="Send ffmpeg log output to specified file.",
     )
     parser.add_argument(
+        "--ffprobe-path",
+        type=str,
+        default="ffprobe",
+        help="Path to ffprobe executable (for duration probing)",
+    )
+    parser.add_argument(
         "ffmpeg_command",
         type=str,
         nargs=argparse.REMAINDER,
@@ -49,6 +55,7 @@ def main() -> None:
         args.ffmpeg_command,
         dry_run=args.dry_run,
         exclude_progress=args.exclude_progress,
+        ffprobe_path=args.ffprobe_path,
     ) as ff:
         try:
             # Check if we should disable tqdm for testing, or in other cases

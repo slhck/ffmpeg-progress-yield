@@ -123,7 +123,7 @@ It will show a progress bar, and once the command is done, show the ffmpeg stder
 Full usage notes:
 
 ```
-usage: ffmpeg-progress-yield [-h] [-d DURATION] [-n] [-p] [-x] [-l LOG_FILE] ...
+usage: ffmpeg-progress-yield [-h] [-d DURATION] [-n] [-p] [-x] [-l LOG_FILE] [--ffprobe-path FFPROBE_PATH] ...
 
 ffmpeg-progress-yield v0.12.0
 
@@ -140,6 +140,8 @@ options:
                         Exclude progress lines from ffmpeg log. (default: False)
   -l, --log-file LOG_FILE
                         Send ffmpeg log output to specified file. (default: None)
+  --ffprobe-path FFPROBE_PATH
+                        Path to ffprobe executable (for duration probing). (default: ffprobe)
 ```
 
 #### Duration override
