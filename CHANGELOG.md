@@ -1,3 +1,12 @@
+## [1.1.2] - 2026-02-07
+
+### 💼 Other
+
+- Remove upper constraint on uv_build, fixes #32
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 1.1.2
 ## [1.1.1] - 2026-01-13
 
 ### 🐛 Bug Fixes
