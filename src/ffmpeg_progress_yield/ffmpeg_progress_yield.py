@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import subprocess
+import types
 import weakref
 from typing import Any, AsyncIterator, Callable, Iterator, List, Optional, Union
 
@@ -518,7 +519,11 @@ class FfmpegProgress:
         Args:
             callback (Callable[[str], None]): A callback function that accepts a single string argument.
         """
-        if not callable(callback) or len(callback.__code__.co_varnames) != 1:
+        if (
+            not callable(callback)
+            or not isinstance(callback, types.FunctionType)
+            or len(callback.__code__.co_varnames) != 1
+        ):
             raise ValueError(
                 "Callback must be a function that accepts only one argument"
             )

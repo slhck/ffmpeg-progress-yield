@@ -42,15 +42,10 @@ dev = [
     "pytest>=8.3.2",
     "pytest-asyncio>=0.24.0",
     "ruff>=0.12.11",
-    "mypy",
     "types-tqdm",
     "pdoc>=15.0.4",
+    "ty>=0.0.24",
 ]
-
-[tool.mypy]
-python_version = "3.13"
-ignore_missing_imports = true
-exclude = ["build"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

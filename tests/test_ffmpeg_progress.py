@@ -142,6 +142,7 @@ class TestLibrary:
             if progress > 0 and ff.stderr is not None:
                 assert len(ff.stderr) > 0
                 break
+        assert ff.stderr is not None
         assert "out_time=" not in ff.stderr
 
     def test_stderr_with_progress(self):
@@ -151,6 +152,7 @@ class TestLibrary:
             if progress > 0 and ff.stderr is not None:
                 assert len(ff.stderr) > 0
                 break
+        assert ff.stderr is not None
         assert "out_time=" in ff.stderr
 
     def test_context_manager(self):
