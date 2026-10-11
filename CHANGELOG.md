@@ -1,3 +1,23 @@
+## [1.1.4] - 2026-10-11
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependencies with known vulnerabilities
+
+### 💼 Other
+
+- *(deps)* Bump pygments from 2.19.2 to 2.20.0
+- *(deps)* Bump urllib3 from 2.5.0 to 2.6.3
+- *(deps)* Bump urllib3 from 2.6.3 to 2.7.0
+
+### 📚 Documentation
+
+- *(readme)* Add centered project icon
+
+### ⚙️ Miscellaneous Tasks
+
+- Require Python 3.10 and support Python 3.15
+- Bump version to 1.1.4
 ## [1.1.3] - 2026-03-30
 
 ### ⚙️ Miscellaneous Tasks
